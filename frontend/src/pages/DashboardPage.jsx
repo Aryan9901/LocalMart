@@ -4,6 +4,7 @@ import { ShoppingCart } from "lucide-react";
 import { ProductCard } from "../components/elements/ProductCard";
 import { ProductDrawer } from "../components/elements/ProductDrawer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Header from "../components/elements/Header";
 
 // Sample data - replace with your actual data
 const products = {
@@ -93,25 +94,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-sm mx-auto">
-        <header className="sticky top-0 z-10 bg-white border-b">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-              <h1 className="font-bold text-lg text-[#39c55e]">Minity</h1>
-            </div>
-            <Button
-              variant="outline"
-              className="relative border-[#39c55e] text-[#39c55e]"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {cart.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#39c55e] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cart.length}
-                </span>
-              )}
-            </Button>
-          </div>
-        </header>
+        <Header cart={cart} />
 
         <main className="container mx-auto px-4 py-6 mb-20">
           <div className="grid grid-cols-2 gap-2">
