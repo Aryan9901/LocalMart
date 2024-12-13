@@ -25,10 +25,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#d8eced] to-white">
       <Card className="w-full border-none shadow-none min-h-screen rounded-none p-0 overflow-hidden">
-        <div className="grid md:grid-cols-2 min-h-screen items-stretch">
+        <div className="grid  min-h-screen items-stretch">
           {/* Left side / Mobile top */}
-          <div className="relative px-6 py-3 md:py-12 flex items-center justify-center bg-[#F8FFF8] transition-all duration-300 ease-in-out">
-            <div className="w-full max-w-md mx-auto space-y-1">
+          <div className="relative px-6 py-3 flex items-center justify-center bg-[#F8FFF8] transition-all duration-300 ease-in-out">
+            <div className="w-full max-w-md mx-auto space-y-0">
+              <h2 className="text-center text-xl font-bold">Login</h2>
               <div className="relative aspect-square w-full max-w-[250px] mx-auto">
                 <img
                   src="/images/loginimg.png"
@@ -43,7 +44,7 @@ export default function LoginPage() {
           </div>
 
           {/* Right side - Login Form */}
-          <div className="p-6 md:p-12 flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
+          <div className="p-6 flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
             <div className="space-y-8 max-w-md mx-auto w-full">
               <div className="text-center md:text-left space-y-2">
                 <h1 className="text-3xl font-bold text-[#3e803a]">
