@@ -106,6 +106,7 @@ export default function OTPPage() {
                       ref={inputRefs[index]}
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
+                      autoFocus={index == 0 ? true : false}
                       className="w-12 h-12 text-center text-xl font-medium focus-visible:ring-offset-0 focus-visible:ring-1"
                     />
                   ))}

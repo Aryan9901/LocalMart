@@ -6,6 +6,7 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   // Simulate OTP sending
   const sendOTP = async (phone) => {
@@ -21,6 +22,8 @@ export function AuthProvider({ children }) {
     if (otp === "9901") {
       // Demo OTP
       setIsAuthenticated(true);
+      // For demo purposes, set role randomly. In a real app, this would come from your backend
+      setUserRole(Math.random() < 0.9 ? "vendor" : "user");
       return true;
     }
     return false;
@@ -30,6 +33,7 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
     setPhoneNumber("");
     setOtpSent(false);
+    setUserRole(null);
   };
 
   return (
@@ -38,9 +42,11 @@ export function AuthProvider({ children }) {
         isAuthenticated,
         phoneNumber,
         otpSent,
+        userRole,
         sendOTP,
         verifyOTP,
         logout,
+        setUserRole,
       }}
     >
       {children}

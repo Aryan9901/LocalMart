@@ -124,7 +124,7 @@ const ShoppingCart = () => {
             >
               <div className="flex items-center">
                 <img
-                  src={`/placeholder.svg?height=40&width=40`}
+                  src={`/images/patato.png`}
                   alt={item.name}
                   className="w-10 h-10 mr-2 rounded"
                 />

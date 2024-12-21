@@ -1,11 +1,18 @@
-"use client";
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { useNavigate } from "react-router-dom";
+
+<style jsx global>{`
+  .react-tel-input .country-list {
+    max-height: 60px;
+    overflow-y: auto;
+    margin-top: 0;
+  }
+`}</style>;
 
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
@@ -25,7 +32,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#d8eced] to-white">
       <Card className="w-full border-none shadow-none min-h-screen rounded-none p-0 overflow-hidden">
-        <div className="grid  min-h-screen items-stretch">
+        <div className="grid min-h-screen items-stretch">
           {/* Left side / Mobile top */}
           <div className="relative px-6 py-3 flex items-center justify-center bg-[#F8FFF8] transition-all duration-300 ease-in-out">
             <div className="w-full max-w-md mx-auto space-y-0">
@@ -48,7 +55,7 @@ export default function LoginPage() {
             <div className="space-y-8 max-w-md mx-auto w-full">
               <div className="text-center md:text-left space-y-2">
                 <h1 className="text-3xl font-bold text-[#3e803a]">
-                  Welcome to Minity
+                  Welcome to SabjiWale
                 </h1>
                 <p className="text-lg text-gray-600">
                   Your go-to app for all groceries
@@ -56,20 +63,15 @@ export default function LoginPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="flex gap-2">
-                  <Input
-                    disabled
-                    value="+91"
-                    className="w-16 text-center bg-gray-50 font-medium"
-                  />
-                  <Input
-                    type="tel"
-                    placeholder="Mobile Number"
+                <div className="flex gap-2 w-full">
+                  <PhoneInput
+                    country={"in"}
                     value={phone}
-                    onChange={(e) =>
-                      setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-                    }
-                    className="flex-1 focus-visible:ring-offset-0 focus-visible:ring-1"
+                    onChange={(phone) => setPhone(phone)}
+                    inputClass="w-full !h-12 !text-base !font-normal"
+                    containerClass="w-full relative"
+                    buttonClass="!h-12"
+                    dropdownClass="text-base bottom-full absolute w-full max-h-[100px] overflow-y-auto  z-50"
                   />
                 </div>
 
@@ -81,14 +83,14 @@ export default function LoginPage() {
                 </Button>
 
                 <p className="text-sm text-center text-gray-600">
-                  By proceeding, I accept the{" "}
+                  By proceeding, I accept the
                   <a
                     href="#"
                     className="text-[#4461F2] hover:underline font-medium"
                   >
                     Terms & Conditions
-                  </a>{" "}
-                  and{" "}
+                  </a>
+                  and
                   <a
                     href="#"
                     className="text-[#4461F2] hover:underline font-medium"

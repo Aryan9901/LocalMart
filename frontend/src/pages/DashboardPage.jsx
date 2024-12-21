@@ -5,6 +5,7 @@ import { ProductCard } from "../components/elements/ProductCard";
 import { ProductDrawer } from "../components/elements/ProductDrawer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "../components/elements/Header";
+import { useAuth } from "../contexts/AuthContext";
 
 // Sample data - replace with your actual data
 const products = {
@@ -82,6 +83,7 @@ export default function Dashboard() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState("vegetables");
+  const { userRole } = useAuth();
 
   const handleAddToCart = (items) => {
     if (Array.isArray(items)) {
@@ -132,36 +134,36 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        <div className="fixed max-w-sm mx-auto bottom-0 shadow-md rounded-t-md left-0 right-0 bg-white">
-          <div className="container mx-auto px-4 py-2">
+        <div className="fixed max-w-sm mx-auto bottom-0   left-0 right-0">
+          <div className="container mx-auto px-0 py-0">
             <Tabs
               defaultValue="vegetables"
               onValueChange={(value) => setActiveTab(value)}
             >
-              <TabsList className="w-full bg-transparent gap-3 justify-between">
+              <TabsList className="w-full h-full rounded-none bg-white py-0 items-start gap-3 justify-between">
                 <TabsTrigger
                   value="vegetables"
-                  className="flex items-center data-[state=active]:shadow-none data-[state=active]:text-white data-[state=active]:bg-[#39c55e] text-gray-500 flex-col justify-center gap-1 flex-1"
+                  className="flex items-center data-[state=active]:shadow-none data-[state=active]:text-black opacity-85 data-[state=active]:opacity-100 border-t data-[state=active]:bg-transparent rounded-none h-full border-transparent data-[state=active]:border-[#39c55e] text-gray-500 flex-col justify-center gap-1 flex-1"
                 >
                   <img
                     src="/images/vegetables.png"
                     alt=""
-                    className="w-6 h-6"
+                    className="w-5 h-5"
                   />
                   <span className="text-xs">Vegetables</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="fruits"
-                  className="flex items-center data-[state=active]:shadow-none data-[state=active]:text-white data-[state=active]:bg-[#39c55e] text-gray-500 flex-col justify-center gap-1 flex-1"
+                  className="flex items-center border-transparent data-[state=active]:shadow-none data-[state=active]:text-black opacity-85 data-[state=active]:opacity-100 border-t data-[state=active]:bg-transparent rounded-none h-full data-[state=active]:border-[#39c55e] text-gray-500 flex-col justify-center gap-1 flex-1"
                 >
-                  <img src="/images/fruits.png" alt="" className="w-6 h-6" />
+                  <img src="/images/fruits.png" alt="" className="w-5 h-5" />
                   <span className="text-xs">Fruits</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="dairy"
-                  className="flex items-center data-[state=active]:shadow-none data-[state=active]:text-white data-[state=active]:bg-[#39c55e] text-gray-500 flex-col justify-center gap-1 flex-1"
+                  className="flex items-center border-transparent data-[state=active]:shadow-none data-[state=active]:text-black opacity-85 data-[state=active]:opacity-100 border-t data-[state=active]:bg-transparent rounded-none h-full data-[state=active]:border-[#39c55e] text-gray-500 flex-col justify-center gap-1 flex-1"
                 >
-                  <img src="/images/dairy.png" alt="" className="w-6 h-6" />
+                  <img src="/images/dairy.png" alt="" className="w-5 h-5" />
                   <span className="text-xs">Dairy</span>
                 </TabsTrigger>
               </TabsList>
