@@ -68,3 +68,7 @@
 *::-webkit-scrollbar {
   width: 2px;
 }
+
+.form-control {
+  width: 100% !important;
+}

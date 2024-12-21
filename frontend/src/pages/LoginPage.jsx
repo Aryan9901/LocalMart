@@ -21,11 +21,13 @@ export default function LoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (phone) {
+    if (phone && phone.length === 10) {
       let isOtpSent = sendOTP(phone);
       if (isOtpSent) {
         navigate("/verify-otp");
       }
+    } else {
+      console.log("error");
     }
   };
 
@@ -77,7 +79,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-[#4461F2] hover:bg-[#4461F2]/90 text-white font-medium text-lg transition-all duration-300 ease-in-out"
+                  className="w-full h-12 bg-[#4461F2] hover:bg-[#4461F2]/90 text-white font-medium text-lg transition-all duration-300 ease-in-out focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
                   Send Mobile OTP
                 </Button>
