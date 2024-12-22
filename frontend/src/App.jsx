@@ -15,6 +15,8 @@ import PageNotFound from "./pages/PageNotFound";
 import OrderPage from "./pages/vendor/OrderPage";
 import ProductPricing from "./pages/vendor/ProductPricing";
 import OrderDetails from "./pages/vendor/OrderDetails";
+import { Bounce, ToastContainer } from "react-toastify";
+import "react-toastify/ReactToastify.css";
 
 // Protected Route Component for Vendors
 const VendorRoute = () => {
@@ -52,9 +54,10 @@ function App() {
 
             {/* Vendor Routes */}
             <Route path="/vendor/" element={<VendorRoute />}>
-              <Route index element={<OrderPage />} />
+              <Route index element={<Dashboard />} />
+              <Route path="orders" element={<OrderPage />} />
               <Route path="product/pricing" element={<ProductPricing />} />
-              <Route path="order" element={<OrderDetails />} />
+              <Route path="orders/id" element={<OrderDetails />} />
             </Route>
 
             {/* User Routes */}
@@ -65,6 +68,19 @@ function App() {
             </Route>
           </Routes>
         </Router>
+        <ToastContainer
+          position="bottom-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={true}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          transition={Bounce}
+        />
       </div>
     </AuthProvider>
   );

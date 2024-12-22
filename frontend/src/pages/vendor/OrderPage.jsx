@@ -93,7 +93,7 @@ function OrderCard({ order }) {
     <div
       className="p-3 bg-white rounded-lg border shadow-sm cursor-pointer"
       onClick={() => {
-        navigate("/vendor/order");
+        navigate("/vendor/orders/id");
       }}
     >
       <div className="flex items-start justify-between">
@@ -146,7 +146,7 @@ export default function OrderPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard">
+          <Link to="/vendor">
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <ChevronLeft className="h-5 w-5" />
             </Button>

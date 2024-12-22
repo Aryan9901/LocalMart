@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const initialProducts = [
   {
@@ -69,6 +69,7 @@ const initialProducts = [
 export default function PricingAvailability() {
   const [products, setProducts] = useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState("vegetables");
+  const navigate = useNavigate();
 
   const updatePrice = (id, newPrice) => {
     setProducts(
@@ -106,11 +107,15 @@ export default function PricingAvailability() {
     <div className="flex sm:border-l sm:border-r h-screen flex-col bg-[#f5f5f5]">
       {/* Header */}
       <header className="flex h-14 items-center gap-4 bg-white border-b px-4">
-        <Link to="/vendor">
-          <button className="p-1" aria-label="Go back">
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
-          </button>
-        </Link>
+        <button
+          className="p-1"
+          aria-label="Go back"
+          onClick={() => {
+            navigate(-1);
+          }}
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-600" />
+        </button>
         <h1 className="text-lg">Pricing & Availability</h1>
       </header>
 

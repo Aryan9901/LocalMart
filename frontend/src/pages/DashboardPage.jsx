@@ -5,7 +5,6 @@ import { ProductCard } from "../components/elements/ProductCard";
 import { ProductDrawer } from "../components/elements/ProductDrawer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "../components/elements/Header";
-import { useAuth } from "../contexts/AuthContext";
 
 // Sample data - replace with your actual data
 const products = {
@@ -83,7 +82,6 @@ export default function Dashboard() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState("vegetables");
-  const { userRole } = useAuth();
 
   const handleAddToCart = (items) => {
     if (Array.isArray(items)) {
@@ -94,7 +92,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 sm:border-l sm:border-r">
       <div className="max-w-sm mx-auto">
         <Header cart={cart} />
 

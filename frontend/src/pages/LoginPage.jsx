@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 <style jsx global>{`
   .react-tel-input .country-list {
@@ -21,13 +22,14 @@ export default function LoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (phone && phone.length === 10) {
+    if (phone && phone.replace("91", "").length === 10) {
       let isOtpSent = sendOTP(phone);
+      toast.success("✅ Otp Sent!");
       if (isOtpSent) {
         navigate("/verify-otp");
       }
     } else {
-      console.log("error");
+      toast.error("‼️ Something went wrong!");
     }
   };
 

@@ -3,7 +3,7 @@
 import { ChevronLeft, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function OrderDetails() {
   const orderItems = [
@@ -32,6 +32,7 @@ export default function OrderDetails() {
       image: "/images/tamato.png",
     },
   ];
+  const navigate = useNavigate();
 
   const orderSummary = {
     mrpTotal: 299,
@@ -45,9 +46,14 @@ export default function OrderDetails() {
     <div className="min-h-screen bg-gray-50">
       <header className="sticky top-0 z-10 bg-white px-4 py-3 shadow-sm">
         <div className="flex items-center gap-4">
-          <Link to="/vendor" className="text-gray-600">
-            <ChevronLeft className="h-6 w-6" />
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="h-8 w-8"
+          >
+            <ChevronLeft className="h-6 w-6 cursor-pointer" />
+          </Button>
           <h1 className="text-lg font-medium">Order Details</h1>
         </div>
       </header>
