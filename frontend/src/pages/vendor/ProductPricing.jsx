@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,6 +9,8 @@ const initialProducts = [
     name: "Potato",
     localName: "Aloo",
     price: 30,
+    mrp: 35,
+    netPrice: 28,
     unit: "kg",
     image: "/images/patato.png",
     available: true,
@@ -19,6 +21,8 @@ const initialProducts = [
     name: "Tomato",
     localName: "Tamatar",
     price: 45,
+    mrp: 50,
+    netPrice: 42,
     unit: "kg",
     image: "/images/onion.png",
     available: true,
@@ -29,6 +33,8 @@ const initialProducts = [
     name: "Mushroom",
     localName: "",
     price: 60,
+    mrp: 65,
+    netPrice: 57,
     unit: "pack",
     image: "/images/tamato.png",
     available: false,
@@ -39,6 +45,8 @@ const initialProducts = [
     name: "Apple",
     localName: "Seb",
     price: 180,
+    mrp: 200,
+    netPrice: 170,
     unit: "kg",
     image: "/images/redchilli.png",
     available: true,
@@ -49,6 +57,8 @@ const initialProducts = [
     name: "Banana",
     localName: "Kela",
     price: 60,
+    mrp: 70,
+    netPrice: 55,
     unit: "dozen",
     image: "/images/tamato.png",
     available: true,
@@ -59,6 +69,8 @@ const initialProducts = [
     name: "Milk",
     localName: "Doodh",
     price: 60,
+    mrp: 65,
+    netPrice: 58,
     unit: "litre",
     image: "/images/redchilli.png",
     available: true,
@@ -71,13 +83,22 @@ export default function PricingAvailability() {
   const [selectedCategory, setSelectedCategory] = useState("vegetables");
   const navigate = useNavigate();
 
-  const updatePrice = (id, newPrice) => {
+  useEffect(() => {
+    console.log("Initial product prices:");
+    initialProducts.forEach((product) => {
+      console.log(
+        `${product.name}: MRP - ₹${product.mrp}, Net Price - ₹${product.netPrice}`
+      );
+    });
+  }, []);
+
+  const updatePrice = (id, field, newValue) => {
     setProducts(
       products.map((product) => {
         if (product.id === id) {
           return {
             ...product,
-            price: Number(newPrice) || product.price,
+            [field]: newValue === "" ? "" : Number(newValue) || product[field],
           };
         }
         return product;
@@ -132,7 +153,7 @@ export default function PricingAvailability() {
                 alt={product.name}
                 className="h-14 w-14 rounded-md object-cover"
               />
-              <div className="flex flex-1 w-fit  items-center justify-between">
+              <div className="flex flex-1 w-fit items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm flex flex-col  items-start">
                     {product.name}
@@ -143,14 +164,27 @@ export default function PricingAvailability() {
                     )}
                   </h2>
                 </div>
-                <div className="flex  items-center gap-1">
-                  <span className="text-sm">₹</span>
-                  <input
-                    type="number"
-                    value={product.price}
-                    onChange={(e) => updatePrice(product.id, e.target.value)}
-                    className="h-7 w-14 text-lg border-b-[1.5px] border-black focus:outline-none"
-                  />
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      placeholder="MRP"
+                      value={product.mrp === "" ? "" : product.mrp}
+                      onChange={(e) =>
+                        updatePrice(product.id, "mrp", e.target.value)
+                      }
+                      className="h-6 w-14 text-sm border-b border-gray-300 focus:outline-none text-right"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Net"
+                      value={product.netPrice === "" ? "" : product.netPrice}
+                      onChange={(e) =>
+                        updatePrice(product.id, "netPrice", e.target.value)
+                      }
+                      className="h-6 w-14 text-sm border-b border-gray-300 focus:outline-none text-right"
+                    />
+                  </div>
                   <span className="text-sm text-gray-500">/{product.unit}</span>
                   <button
                     onClick={() => toggleAvailability(product.id)}

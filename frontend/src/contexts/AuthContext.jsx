@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
       // Demo OTP
       setIsAuthenticated(true);
       // For demo purposes, set role randomly. In a real app, this would come from your backend
-      setUserRole(Math.random() < 0.9 ? "vendor" : "user");
+      setUserRole("vendor");
       return true;
     }
     return false;

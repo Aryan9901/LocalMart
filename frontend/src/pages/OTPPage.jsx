@@ -72,21 +72,21 @@ export default function OTPPage() {
           <div className="relative px-6 py-1  flex items-center justify-center bg-[#F8FFF8] transition-all duration-300 ease-in-out">
             <div className="w-full max-w-md mx-auto space-y-0">
               <h2 className="text-center text-xl font-bold">Verify Otp</h2>
-              <div className="relative aspect-square w-full max-w-[250px] mx-auto">
+              <div className="relative aspect-square w-full max-w-[150px] mx-auto">
                 <img
                   src="/images/loginimg.png"
                   alt="Fruits and Vegetables Illustration"
                   className="w-full h-full object-contain transition-transform duration-300 ease-in-out"
                 />
               </div>
-              <p className="text-center mx-auto w-3/4 text-lg font-medium text-[#3e803a]">
-                High Quality & Fresh Fruits & Vegetables
+              <p className="text-center mx-auto w-3/4 leading-6 text-base font-medium text-[#3e803a]">
+                High Quality & Fresh Fruits, Vegetables & Dairy Products
               </p>
             </div>
           </div>
 
           {/* Right side - OTP Form */}
-          <div className="px-6 py-2  flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
+          <div className="px-6 py-0  flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
             <div className="space-y-3 max-w-md mx-auto w-full">
               <div className="text-center space-y-1">
                 <h1 className="text-2xl font-bold text-[#3e803a]">Enter OTP</h1>

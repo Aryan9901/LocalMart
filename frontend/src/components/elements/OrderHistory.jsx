@@ -1,6 +1,6 @@
 import React from "react";
 import { BadgeAlert, BadgeCheck, BadgeInfo, ChevronLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const OrderHistory = () => {
   const orders = [
@@ -62,6 +62,8 @@ const OrderHistory = () => {
     },
   ];
 
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -80,7 +82,11 @@ const OrderHistory = () => {
       <div className="p-4 max-w-sm mx-auto">
         <div className="space-y-4">
           {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-lg p-4 shadow-sm">
+            <div
+              key={order.id}
+              className="bg-white rounded-lg p-4 shadow-sm cursor-pointer"
+              onClick={() => navigate(`/history/${order.id}`)}
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="text-sm text-gray-500">{order.date}</div>
                 {order.status === "completed" ? (

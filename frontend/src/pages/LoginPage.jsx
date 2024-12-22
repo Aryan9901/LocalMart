@@ -41,22 +41,22 @@ export default function LoginPage() {
           <div className="relative px-6 py-3 flex items-center justify-center bg-[#F8FFF8] transition-all duration-300 ease-in-out">
             <div className="w-full max-w-md mx-auto space-y-0">
               <h2 className="text-center text-xl font-bold">Login</h2>
-              <div className="relative aspect-square w-full max-w-[250px] mx-auto">
+              <div className="relative aspect-square w-full max-w-[150px] mx-auto">
                 <img
                   src="/images/loginimg.png"
                   alt="Fruits and Vegetables Illustration"
                   className="w-full h-full object-contain transition-transform duration-300 ease-in-out"
                 />
               </div>
-              <p className="text-center mx-auto w-3/4 text-lg font-medium text-[#3e803a]">
-                High Quality & Fresh Fruits & Vegetables
+              <p className="text-center mx-auto w-3/4 leading-5 text-base font-medium text-[#3e803a]">
+                High Quality & Fresh Fruits, Vegetables & Dairy Products
               </p>
             </div>
           </div>
 
           {/* Right side - Login Form */}
-          <div className="p-6 flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
-            <div className="space-y-8 max-w-md mx-auto w-full">
+          <div className="py-4 px-5 flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
+            <div className="space-y-3 max-w-md mx-auto w-full">
               <div className="text-center md:text-left space-y-2">
                 <h1 className="text-3xl font-bold text-[#3e803a]">
                   Welcome to SabjiWale
