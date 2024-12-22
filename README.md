@@ -85,6 +85,49 @@ LocalMart is an innovative web application that bridges the gap between local ve
 - Google Maps API key
 - Stripe account for payments
 
-### Installation
 
-1. Clone the repository:
+## Usage
+
+### For Customers
+
+1. Sign up or log in to your account.
+2. Set your delivery address.
+3. Browse nearby shops and their products.
+4. Add items to your cart.
+5. Choose delivery time and place your order.
+6. Track your order in real-time.
+7. Pay securely through the app.
+8. Rate your experience after receiving the order.
+
+### For Vendors
+
+1. Register your shop on the LocalMart platform.
+2. Set up your shop profile and delivery radius.
+3. List your products with prices and availability.
+4. Receive real-time order notifications.
+5. Manage orders and update order status.
+6. View analytics and reports on your sales.
+
+## API Documentation
+
+For detailed API documentation, please refer to our [Swagger UI](http://localhost:8080/swagger-ui.html) when running the backend locally.
+
+## Contributing
+
+We welcome contributions to LocalMart! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+- Project Maintainer: [Your Name](mailto:your.email@example.com)
+- Website: [www.localmart.com](http://www.localmart.com)
+- Twitter: [@localmart](https://twitter.com/localmart)
+
+For support or queries, please email us at support@localmart.com.
+
+---
+
+LocalMart - Bringing fresh, local produce to your doorstep, faster than ever!
