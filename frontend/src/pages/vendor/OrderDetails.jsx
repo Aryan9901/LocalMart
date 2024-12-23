@@ -74,7 +74,7 @@ export default function OrderDetails() {
           "Other",
         ]
       : [
-          "Changed my mind",
+          "Out of Home",
           "Found a better price elsewhere",
           "Ordered by mistake",
           "Delivery time is too long",

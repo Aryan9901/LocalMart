@@ -60,6 +60,7 @@ export default function OTPPage() {
         setError("Invalid OTP. Please try again.");
       }
     } catch (err) {
+      console.log(err);
       setError("Failed to verify OTP. Please try again.");
     }
   };

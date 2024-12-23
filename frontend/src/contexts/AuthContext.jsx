@@ -18,12 +18,9 @@ export function AuthProvider({ children }) {
 
   // Simulate OTP verification
   const verifyOTP = async (otp) => {
-    // In a real app, you would verify the OTP with your backend
     if (otp === "9901") {
-      // Demo OTP
       setIsAuthenticated(true);
-      // For demo purposes, set role randomly. In a real app, this would come from your backend
-      setUserRole("vendor");
+      setUserRole(import.meta.env.VITE_USER_ROLE);
       return true;
     }
     return false;
