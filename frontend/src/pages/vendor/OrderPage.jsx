@@ -1,7 +1,21 @@
-import { ChartNoAxesGantt, ChevronLeft, MoreVertical } from "lucide-react";
+import {
+  GanttChartIcon as ChartNoAxesGantt,
+  ChevronLeft,
+  MoreVertical,
+  ShoppingBag,
+  Store,
+  Package,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const orders = [
   {
@@ -81,7 +95,7 @@ const orders = [
     initials: "PS",
     timestamp: "24th Dec, 2024 2:45 PM",
     amount: 180,
-    items: ["/images/patato.png", , "/images/patato.png"],
+    items: ["/images/patato.png", "/images/patato.png"],
     status: "completed",
   },
 ];
@@ -90,33 +104,36 @@ function OrderCard({ order }) {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="p-3 bg-white rounded-lg border shadow-sm cursor-pointer"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="p-4 bg-white rounded-lg border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
       onClick={() => {
         navigate("/vendor/orders/id");
       }}
     >
       <div className="flex items-start justify-between">
         <div className="flex gap-3">
-          <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
             <span className="text-sm font-medium">{order.initials}</span>
           </div>
           <div>
-            <p className="font-medium">{order.customerName}</p>
+            <p className="font-medium text-gray-900">{order.customerName}</p>
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <span className="h-4 w-4">🕒</span>
               {order.timestamp}
             </div>
           </div>
         </div>
-        <p className="font-medium">₹ {order.amount}</p>
+        <p className="font-medium text-green-600">₹ {order.amount}</p>
       </div>
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-2">
         {order.items.map((item, index) => (
           <div
             key={index}
-            className="h-12 w-12 rounded-lg overflow-hidden border bg-gray-50"
+            className="h-14 w-14 flex-shrink-0 rounded-lg overflow-hidden border bg-gray-50"
           >
             <img
               src={item}
@@ -126,12 +143,12 @@ function OrderCard({ order }) {
           </div>
         ))}
         {order.extraItems && (
-          <div className="h-12 w-12 rounded-lg border bg-gray-50 flex items-center justify-center text-sm text-gray-600">
+          <div className="h-14 w-14 flex-shrink-0 rounded-lg border bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-600">
             +{order.extraItems}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -142,51 +159,92 @@ export default function OrderPage() {
   );
 
   return (
-    <div className="min-h-screen sm:border-l sm:border-r bg-white">
+    <div className="min-h-screen sm:border-l sm:border-r bg-gray-50 pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b">
-        <div className="flex items-center gap-3">
-          <Link to="/vendor">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-lg font-medium">Orders</h1>
-        </div>
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-10">
+        <h1 className="text-lg font-semibold text-gray-900 ml-2">
+          Orders Page
+        </h1>
         <Link to="/vendor/product/pricing">
-          <ChartNoAxesGantt className="h-6 w-6 cursor-pointer" />
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <ChartNoAxesGantt className="h-5 w-5" />
+          </Button>
         </Link>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="w-full justify-start h-12 p-0 bg-transparent border-b rounded-none">
+      <Tabs defaultValue="pending" className="w-full flex flex-col">
+        <TabsList className="w-full justify-start h-12 p-0 bg-white border-b rounded-none sticky top-14 z-10 flex-shrink-0">
           <TabsTrigger
             value="pending"
-            className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-500 data-[state=active]:shadow-none"
+            className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none transition-colors"
           >
             Pending Orders
           </TabsTrigger>
           <TabsTrigger
             value="completed"
-            className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-500 data-[state=active]:shadow-none"
+            className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none transition-colors"
           >
             Completed Orders
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending" className="px-2 space-y-2 py-2">
+        <TabsContent
+          value="pending"
+          className="px-4 space-y-2 py-2 flex-1 overflow-y-auto"
+        >
           {pendingOrders.map((order) => (
             <OrderCard key={order.id} order={order} />
           ))}
         </TabsContent>
 
-        <TabsContent value="completed" className="px-2 py-2 space-y-2">
+        <TabsContent
+          value="completed"
+          className="px-4 py-4 space-y-4 flex-1 overflow-y-auto"
+        >
           {completedOrders.map((order) => (
             <OrderCard key={order.id} order={order} />
           ))}
         </TabsContent>
       </Tabs>
+
+      {/* Bottom Navigation */}
+      <TooltipProvider>
+        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/vendor" className="p-2">
+                <ShoppingBag className="h-6 w-6 text-gray-600" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>My Orders</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/vendor/store" className="p-2">
+                <Store className="h-6 w-6 text-gray-600" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>My Store</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/vendor/product/pricing" className="p-2">
+                <Package className="h-6 w-6 text-gray-600" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>My Products</p>
+            </TooltipContent>
+          </Tooltip>
+        </nav>
+      </TooltipProvider>
     </div>
   );
 }

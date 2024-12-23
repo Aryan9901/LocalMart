@@ -55,9 +55,9 @@ function App() {
 
             {/* Vendor Routes */}
             <Route path="/vendor/" element={<VendorRoute />}>
-              <Route index element={<Dashboard />} />
-              <Route path="orders" element={<OrderPage />} />
-              <Route path="search" element={<SearchPage />} />
+              <Route index element={<OrderPage />} />
+              <Route path="store" element={<Dashboard />} />
+              <Route path="store/search" element={<SearchPage />} />
               <Route path="product/pricing" element={<ProductPricing />} />
               <Route path="orders/id" element={<OrderDetails />} />
             </Route>

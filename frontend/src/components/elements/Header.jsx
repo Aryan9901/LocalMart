@@ -71,7 +71,7 @@ const VendorMenu = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem asChild>
-          <Link to="/vendor/orders" className="flex items-center">
+          <Link to="/vendor" className="flex items-center">
             <ClipboardList className="mr-2 h-4 w-4" />
             <span>View Orders</span>
           </Link>

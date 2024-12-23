@@ -29,7 +29,6 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 sm:border-l sm:border-r">
       <div className="max-w-sm mx-auto">
         <Header cart={cart} />
-
         <div className="px-4 py-2">
           <Button
             onClick={() => navigate("search")}
