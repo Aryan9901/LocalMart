@@ -104,6 +104,7 @@ export default function OTPPage() {
                       type="text"
                       maxLength={1}
                       value={digit}
+                      inputMode="numeric"
                       ref={inputRefs[index]}
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}

@@ -1,6 +1,32 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Check, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  X,
+  ShoppingBag,
+  Store,
+  Package,
+  Phone,
+  UserCircle,
+  StoreIcon,
+  LogOut,
+  User,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "../../contexts/AuthContext";
 
 const initialProducts = [
   {
@@ -82,6 +108,19 @@ export default function PricingAvailability() {
   const [selectedCategory, setSelectedCategory] = useState("vegetables");
   const navigate = useNavigate();
 
+  const renderNavItem = (to, icon, label) => (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link to={to} className="p-2">
+          {icon}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{label}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+
   useEffect(() => {
     console.log("Initial product prices:");
     initialProducts.forEach((product) => {
@@ -127,7 +166,7 @@ export default function PricingAvailability() {
   return (
     <div className="flex sm:border-l sm:border-r h-screen flex-col bg-[#f5f5f5]">
       {/* Header */}
-      <header className="flex h-14 items-center gap-4 bg-white border-b px-4 sticky top-0 z-10">
+      <header className="flex h-16 items-center gap-4 bg-white border-b px-4 sticky top-0 z-10">
         <button
           className="p-1"
           aria-label="Go back"
@@ -138,22 +177,68 @@ export default function PricingAvailability() {
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </button>
         <h1 className="text-lg font-semibold">Pricing & Availability</h1>
+        <VendorMenu />
       </header>
+
+      {/* Category Selection */}
+      <div className="px-2 py-1 sticky top-14 bg-[#f5f5f5] z-10 shadow-sm">
+        <Tabs
+          defaultValue="vegetables"
+          onValueChange={setSelectedCategory}
+          className="w-full"
+        >
+          <TabsList className="w-full bg-white rounded-lg px-1 py-1 gap-2 shadow-none">
+            <TabsTrigger
+              value="vegetables"
+              className="flex-1 data-[state=active]:bg-[#39c55e] data-[state=active]:text-white rounded-md transition-all duration-200"
+            >
+              <img
+                src="/images/vegetables.png"
+                alt=""
+                className="w-5 h-5 mr-2 inline-block"
+              />
+              <span>Vegetables</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="fruits"
+              className="flex-1 data-[state=active]:bg-[#39c55e] data-[state=active]:text-white rounded-md transition-all duration-200"
+            >
+              <img
+                src="/images/fruits.png"
+                alt=""
+                className="w-5 h-5 mr-2 inline-block"
+              />
+              <span>Fruits</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="dairy"
+              className="flex-1 data-[state=active]:bg-[#39c55e] data-[state=active]:text-white rounded-md transition-all duration-200"
+            >
+              <img
+                src="/images/dairy.png"
+                alt=""
+                className="w-5 h-5 mr-2 inline-block"
+              />
+              <span>Dairy</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
       {/* Product List */}
       <div className="flex-1 overflow-auto">
         {/* Field Headers */}
-        <div className="sticky top-0 bg-white border-b px-4 py-2 flex items-center justify-between text-sm font-medium text-gray-600">
+        <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-600">
           <div className="w-1/3">Product</div>
           <div className="flex items-center justify-end w-2/3">
-            <div className="w-14 text-center">MRP</div>
-            <div className="w-14 text-center ml-1">Net</div>
+            <div className="w-14 text-right">MRP</div>
+            <div className="w-14 text-right ml-1">Net</div>
             <div className="w-12 text-center">Unit</div>
-            <div className="w-8 text-center">Avail</div>
+            <div className="w-8 text-center">Stock</div>
           </div>
         </div>
 
-        <ul className="px-2 py-2 gap-3">
+        <ul className="px-2 pt-0 pb-20 gap-3">
           {filteredProducts.map((product) => (
             <li
               key={product.id}
@@ -218,46 +303,43 @@ export default function PricingAvailability() {
         </ul>
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="flex border-t bg-white sticky bottom-0 z-10">
-        <button
-          className={`flex flex-1 border-t flex-col items-center gap-1 px-3 py-2 ${
-            selectedCategory === "vegetables"
-              ? "text-black border-[#39c55e]"
-              : "text-gray-500 opacity-85"
-          }`}
-          onClick={() => setSelectedCategory("vegetables")}
-        >
-          <img
-            src="/images/vegetables.png"
-            alt="Vegetables"
-            className="h-6 w-6"
-          />
-          <span className="text-xs">Vegetables</span>
-        </button>
-        <button
-          className={`flex flex-1 flex-col border-t items-center gap-1 px-3 py-2 ${
-            selectedCategory === "fruits"
-              ? "text-black border-[#39c55e]"
-              : "text-gray-500 opacity-85"
-          }`}
-          onClick={() => setSelectedCategory("fruits")}
-        >
-          <img src="/images/fruits.png" alt="Fruits" className="h-6 w-6" />
-          <span className="text-xs">Fruits</span>
-        </button>
-        <button
-          className={`flex flex-1 flex-col border-t items-center gap-1 px-3 py-2 ${
-            selectedCategory === "dairy"
-              ? "text-black border-[#39c55e]"
-              : "text-gray-500 opacity-85"
-          }`}
-          onClick={() => setSelectedCategory("dairy")}
-        >
-          <img src="/images/dairy.png" alt="Dairy" className="h-6 w-6" />
-          <span className="text-xs">Dairy</span>
-        </button>
-      </nav>
+      <TooltipProvider>
+        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+          {renderNavItem(
+            "/vendor",
+            <ShoppingBag className="h-6 w-6 text-gray-500" />,
+            "My Orders"
+          )}
+          {renderNavItem(
+            "/vendor/store",
+            <Store className="h-6 w-6 text-gray-500" />,
+            "My Store"
+          )}
+          {renderNavItem(
+            "/vendor/product/pricing",
+            <Package className="h-6 w-6 text-black" />,
+            "My Products"
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Support</p>
+            </TooltipContent>
+          </Tooltip>
+        </nav>
+      </TooltipProvider>
     </div>
   );
 }
+
+const VendorMenu = () => {
+  const { logout } = useAuth();
+
+  return (
+    <Link to="/vendor/profile" className="ml-auto mr-2">
+      <UserCircle className="h-7 w-7 " />
+    </Link>
+  );
+};

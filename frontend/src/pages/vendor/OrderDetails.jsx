@@ -1,19 +1,70 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, MapPin, Phone, X } from "lucide-react";
+import {
+  ChevronLeft,
+  History,
+  HistoryIcon,
+  LogOut,
+  MapPin,
+  Package,
+  Phone,
+  ShoppingBag,
+  ShoppingCart,
+  Store,
+  StoreIcon,
+  User,
+  UserCircle,
+  X,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { Calendar } from "@/components/ui/calendar";
+import { format, addDays, isBefore, isAfter } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function OrderDetails() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [rescheduleDate, setRescheduleDate] = useState(new Date());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const navigate = useNavigate();
   const { userRole } = useAuth();
+
+  const renderNavItem = (to, icon, label) => (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link to={to} className="p-2">
+          {icon}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{label}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
 
   const orderItems = [
     {
@@ -51,18 +102,14 @@ export default function OrderDetails() {
   };
 
   const orderStatus = "Pending"; // This could be 'Pending', 'Delivered', or 'Cancelled'
+  const orderDate = new Date("2024-12-25T14:00:00"); // Example date
   const timeSlot = "2-4 PM";
   const currentTime = new Date();
-  const slotStartTime = new Date(
-    currentTime.getFullYear(),
-    currentTime.getMonth(),
-    currentTime.getDate(),
-    14,
-    0,
-    0
-  );
+  const slotStartTime = new Date(orderDate);
+  slotStartTime.setHours(14, 0, 0, 0);
   const canRequestCancellation =
     currentTime.getTime() < slotStartTime.getTime() - 3600000; // 1 hour before slot start time
+  const canReschedule = currentTime.getTime() < slotStartTime.getTime(); // Before slot start time
 
   const cancelReasons =
     userRole === "vendor"
@@ -92,9 +139,27 @@ export default function OrderDetails() {
     setIsCancelModalOpen(false);
   };
 
+  const handleRescheduleOrder = () => {
+    // Implement rescheduling logic here
+    console.log(
+      `Order ${
+        userRole === "vendor" ? "rescheduled" : "reschedule requested"
+      } to:`,
+      format(rescheduleDate, "PPP"),
+      "Time slot:",
+      selectedTimeSlot
+    );
+    setIsRescheduleModalOpen(false);
+  };
+
   const handleMarkDelivered = () => {
     // Implement mark as delivered logic here
     console.log("Order marked as delivered");
+  };
+
+  const handleBuyAgain = () => {
+    // Implement buy again logic here
+    console.log("Buy Again clicked for order items:", orderItems);
   };
 
   return (
@@ -110,10 +175,11 @@ export default function OrderDetails() {
             <ChevronLeft className="h-6 w-6 cursor-pointer" />
           </Button>
           <h1 className="text-lg font-medium">Order Details</h1>
+          <UserMenu />
         </div>
       </header>
 
-      <main className="mx-auto max-w-lg space-y-4 p-4">
+      <main className="mx-auto mb-16 max-w-lg space-y-4 p-4">
         <section className="rounded-lg bg-white p-4">
           <h2 className="mb-4 font-medium">Order Items</h2>
           <div className="space-y-4">
@@ -185,6 +251,10 @@ export default function OrderDetails() {
             Status: <span className="font-medium">{orderStatus}</span>
           </p>
           <p className="text-sm text-gray-600">
+            Date:{" "}
+            <span className="font-medium">{format(orderDate, "PPP")}</span>
+          </p>
+          <p className="text-sm text-gray-600">
             Time Slot: <span className="font-medium">{timeSlot}</span>
           </p>
         </section>
@@ -193,13 +263,19 @@ export default function OrderDetails() {
           <footer className="bg-white p-4">
             <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
               <Button
-                className="bg-red-600 w-1/2 hover:bg-red-500"
+                className="bg-red-600 w-1/3 hover:bg-red-500"
                 onClick={() => setIsCancelModalOpen(true)}
               >
                 Cancel Order
               </Button>
               <Button
-                className="bg-blue-600 w-1/2 hover:bg-blue-700"
+                className="bg-blue-600 w-1/3 hover:bg-blue-700"
+                onClick={() => setIsRescheduleModalOpen(true)}
+              >
+                Reschedule
+              </Button>
+              <Button
+                className="bg-green-600 w-1/3 hover:bg-green-700"
                 onClick={handleMarkDelivered}
               >
                 Mark Delivered
@@ -209,19 +285,37 @@ export default function OrderDetails() {
         ) : (
           <footer className="bg-white p-4">
             <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
+              {canRequestCancellation && orderStatus === "Pending" && (
+                <Button
+                  className="bg-red-600 w-1/3 hover:bg-red-500"
+                  onClick={() => setIsCancelModalOpen(true)}
+                >
+                  Cancel Order
+                </Button>
+              )}
+              {canReschedule && orderStatus === "Pending" && (
+                <Button
+                  className="bg-blue-600 w-1/3 hover:bg-blue-700"
+                  onClick={() => setIsRescheduleModalOpen(true)}
+                >
+                  Reschedule
+                </Button>
+              )}
               <Button
-                className="bg-red-600 w-full hover:bg-red-500"
-                onClick={() => setIsCancelModalOpen(true)}
-                disabled={!canRequestCancellation || orderStatus !== "Pending"}
+                className="bg-green-600 w-1/3 hover:bg-green-700"
+                onClick={handleBuyAgain}
               >
-                Request Cancellation
+                Buy Again
               </Button>
             </div>
-            {!canRequestCancellation && orderStatus === "Pending" && (
-              <p className="text-sm text-red-500 mt-2 text-center">
-                Cancellation is only available 1 hour before the delivery slot.
-              </p>
-            )}
+            {!canRequestCancellation &&
+              !canReschedule &&
+              orderStatus === "Pending" && (
+                <p className="text-sm text-red-500 mt-2 text-center">
+                  Cancellation and rescheduling are no longer available for this
+                  order.
+                </p>
+              )}
           </footer>
         )}
       </main>
@@ -231,9 +325,7 @@ export default function OrderDetails() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium">
-                {userRole === "vendor"
-                  ? "Cancel Order"
-                  : "Request Cancellation"}
+                {userRole === "vendor" ? "Cancel Order" : "Cancel Order"}
               </h2>
               <Button
                 variant="ghost"
@@ -244,16 +336,13 @@ export default function OrderDetails() {
               </Button>
             </div>
             <p className="mb-4 text-sm text-gray-600">
-              {userRole === "vendor"
-                ? "Please select a reason for cancelling this order:"
-                : "Please select a reason for requesting cancellation:"}
+              Please select a reason for cancelling this order:
             </p>
             <RadioGroup onValueChange={setCancelReason} className="space-y-2">
               {cancelReasons.map((reason) => (
                 <div key={reason} className="flex items-center space-x-2">
                   <RadioGroupItem value={reason} id={reason} />
                   <Label htmlFor={reason} className="cursor-pointer">
-                    {" "}
                     {reason}
                   </Label>
                 </div>
@@ -267,15 +356,156 @@ export default function OrderDetails() {
               >
                 Close
               </Button>
-              <Button onClick={handleCancelOrder}>
-                {userRole === "vendor"
-                  ? "Cancel Order"
-                  : "Request Cancellation"}
+              <Button onClick={handleCancelOrder}>Cancel Order</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRescheduleModalOpen && (
+        <div className="fixed inset-0 z-50 max-w-sm mx-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-medium">Reschedule Order</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsRescheduleModalOpen(false)}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+            <p className="mb-4 text-sm text-gray-600">
+              Please select a new date for your order:
+            </p>
+            <Calendar
+              mode="single"
+              selected={rescheduleDate}
+              onSelect={(date) => date && setRescheduleDate(date)}
+              disabled={(date) => isBefore(date, new Date())}
+              className="rounded-md border"
+            />
+            <div className="mt-4">
+              <label
+                htmlFor="timeSlot"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Select Time Slot
+              </label>
+              <Select
+                onValueChange={setSelectedTimeSlot}
+                value={selectedTimeSlot}
+              >
+                <SelectTrigger id="timeSlot">
+                  <SelectValue placeholder="Select a time slot" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="8-10am">8-10am</SelectItem>
+                  <SelectItem value="10-12pm">10-12pm</SelectItem>
+                  <SelectItem value="12-2pm">12-2pm</SelectItem>
+                  <SelectItem value="2-4pm">2-4pm</SelectItem>
+                  <SelectItem value="4-6pm">4-6pm</SelectItem>
+                  <SelectItem value="6-8pm">6-8pm</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setIsRescheduleModalOpen(false)}
+                className="mr-2"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={handleRescheduleOrder}
+                disabled={!selectedTimeSlot}
+              >
+                Reschedule
               </Button>
             </div>
           </div>
         </div>
       )}
+      {userRole === "vendor" && (
+        <TooltipProvider>
+          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+            {renderNavItem(
+              "/vendor",
+              <ShoppingBag className="h-6 w-6 text-gray-500" />,
+              "My Orders"
+            )}
+            {renderNavItem(
+              "/vendor/store",
+              <Store className="h-6 w-6 text-black" />,
+              "My Store"
+            )}
+            {renderNavItem(
+              "/vendor/product/pricing",
+              <Package className="h-6 w-6 text-gray-500" />,
+              "My Products"
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Support</p>
+              </TooltipContent>
+            </Tooltip>
+          </nav>
+        </TooltipProvider>
+      )}
+      {userRole === "user" && (
+        <TooltipProvider>
+          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+            {renderNavItem(
+              "/history",
+              <History className="h-6 w-6 text-black" />,
+              "My Orders"
+            )}
+            {renderNavItem(
+              "/",
+              <Store className="h-6 w-6 text-gray-500" />,
+              "My Store"
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/cart" className="relative">
+                  <ShoppingCart className="h-6 w-6 text-gray-600" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>cart</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Support</p>
+              </TooltipContent>
+            </Tooltip>
+          </nav>
+        </TooltipProvider>
+      )}
     </div>
   );
 }
+
+const UserMenu = () => {
+  const { userRole } = useAuth();
+
+  return (
+    <div className="ml-auto mr-2">
+      <Link
+        to={userRole === "vendor" ? "/vendor/profile" : "/profile"}
+        className="ml-auto mr-2"
+      >
+        <UserCircle className="h-7 w-7 " />
+      </Link>
+    </div>
+  );
+};

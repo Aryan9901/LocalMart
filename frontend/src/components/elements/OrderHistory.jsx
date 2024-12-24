@@ -1,6 +1,32 @@
-import React from "react";
-import { BadgeAlert, BadgeCheck, BadgeInfo, ChevronLeft } from "lucide-react";
+import React, { useState } from "react";
+import {
+  BadgeAlert,
+  BadgeCheck,
+  BadgeInfo,
+  ChevronLeft,
+  History,
+  LogOut,
+  Phone,
+  ShoppingCart,
+  Store,
+  StoreIcon,
+  User,
+  UserCircle,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "../../contexts/AuthContext";
 
 const OrderHistory = () => {
   const orders = [
@@ -61,25 +87,35 @@ const OrderHistory = () => {
       status: "cancelled",
     },
   ];
-
+  const { userRole } = useAuth();
   const navigate = useNavigate();
+  const [cart, setCart] = useState([]);
+
+  const renderNavItem = (to, icon, label) => (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link to={to} className="p-2">
+          {icon}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{label}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white px-4 py-4 flex items-center border-b">
-        <Link to="/">
-          <button className="p-1 -ml-1">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-        </Link>
-        <h1 className="text-lg font-medium flex-1 text-center mr-6">
+      <div className="bg-white px-4 py-4  flex items-center border-b">
+        <h1 className="text-lg font-medium flex-1 text-left ml-4 mr-6">
           Order History
         </h1>
+        <UserMenu />
       </div>
 
       {/* Order List */}
-      <div className="p-4 max-w-sm mx-auto">
+      <div className="p-4 pb-16 max-w-sm mx-auto">
         <div className="space-y-4">
           {orders.map((order) => (
             <div
@@ -123,8 +159,58 @@ const OrderHistory = () => {
           ))}
         </div>
       </div>
+      {/* bottom nav */}
+      {userRole === "user" && (
+        <TooltipProvider>
+          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+            {renderNavItem(
+              "/history",
+              <History className="h-6 w-6 text-black" />,
+              "My Orders"
+            )}
+            {renderNavItem(
+              "/",
+              <Store className="h-6 w-6 text-gray-500" />,
+              "My Store"
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/cart" className="relative">
+                  <ShoppingCart className="h-6 w-6 text-gray-600" />
+                  {cart.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-[#39c55e] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {cart.length}
+                    </span>
+                  )}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>cart</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Support</p>
+              </TooltipContent>
+            </Tooltip>
+          </nav>
+        </TooltipProvider>
+      )}
     </div>
   );
 };
 
 export default OrderHistory;
+
+const UserMenu = () => {
+  const { logout } = useAuth();
+
+  return (
+    <Link to="/profile" className="ml-auto mr-2">
+      <UserCircle className="h-7 w-7 " />
+    </Link>
+  );
+};

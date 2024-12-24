@@ -18,6 +18,7 @@ import OrderDetails from "./pages/vendor/OrderDetails";
 import { Bounce, ToastContainer } from "react-toastify";
 import "react-toastify/ReactToastify.css";
 import SearchPage from "./components/elements/SearchPage";
+import Profile from "./pages/Profile";
 
 // Protected Route Component for Vendors
 const VendorRoute = () => {
@@ -57,6 +58,7 @@ function App() {
             <Route path="/vendor/" element={<VendorRoute />}>
               <Route index element={<OrderPage />} />
               <Route path="store" element={<Dashboard />} />
+              <Route path="profile" element={<Profile />} />
               <Route path="store/search" element={<SearchPage />} />
               <Route path="product/pricing" element={<ProductPricing />} />
               <Route path="orders/id" element={<OrderDetails />} />
@@ -66,6 +68,7 @@ function App() {
             <Route path="/" element={<UserRoute />}>
               <Route index element={<Dashboard />} />
               <Route path="search" element={<SearchPage />} />
+              <Route path="profile" element={<Profile />} />
               <Route path="cart" element={<ShoppingCart />} />
               <Route path="history" element={<OrderHistory />} />
               <Route path="history/:id" element={<OrderDetails />} />

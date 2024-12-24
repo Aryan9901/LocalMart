@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   GanttChartIcon as ChartNoAxesGantt,
   ChevronLeft,
@@ -5,6 +6,12 @@ import {
   ShoppingBag,
   Store,
   Package,
+  LogOut,
+  Phone,
+  UserCircle,
+  ClipboardList,
+  StoreIcon,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,8 +23,15 @@ import {
 } from "@/components/ui/tooltip";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const orders = [
+const initialOrders = [
   {
     id: "1",
     customerName: "Ramesh Kumar Singh",
@@ -88,6 +102,7 @@ const orders = [
     amount: 350,
     items: ["/images/patato.png", "/images/patato.png", "/images/patato.png"],
     status: "completed",
+    paymentStatus: "payment_due",
   },
   {
     id: "7",
@@ -97,10 +112,11 @@ const orders = [
     amount: 180,
     items: ["/images/patato.png", "/images/patato.png"],
     status: "completed",
+    paymentStatus: "payment_due",
   },
 ];
 
-function OrderCard({ order }) {
+function OrderCard({ order, onPaymentDone, showPaymentButton }) {
   const navigate = useNavigate();
 
   return (
@@ -109,8 +125,11 @@ function OrderCard({ order }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className="p-4 bg-white rounded-lg border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => {
-        navigate("/vendor/orders/id");
+      onClick={(e) => {
+        // Prevent navigation when clicking the "Payment Done" button
+        if (e.target.tagName !== "BUTTON") {
+          navigate("/vendor/orders/id");
+        }
       }}
     >
       <div className="flex items-start justify-between">
@@ -148,33 +167,73 @@ function OrderCard({ order }) {
           </div>
         )}
       </div>
+
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-sm font-medium">
+          Status:{" "}
+          <span
+            className={
+              order.status === "completed" &&
+              order.paymentStatus === "completed"
+                ? "text-green-600"
+                : "text-orange-500"
+            }
+          >
+            {order.status === "completed" && order.paymentStatus === "completed"
+              ? "Completed"
+              : order.status === "completed"
+              ? "Payment Due"
+              : "Pending"}
+          </span>
+        </div>
+        {showPaymentButton &&
+          order.status === "completed" &&
+          order.paymentStatus === "payment_due" && (
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPaymentDone(order.id);
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Payment Done
+            </Button>
+          )}
+      </div>
     </motion.div>
   );
 }
 
 export default function OrderPage() {
+  const [orders, setOrders] = useState(initialOrders);
   const pendingOrders = orders.filter((order) => order.status === "pending");
   const completedOrders = orders.filter(
     (order) => order.status === "completed"
   );
+  const { logout } = useAuth();
+
+  const handlePaymentDone = (orderId) => {
+    setOrders(
+      orders.map((order) =>
+        order.id === orderId ? { ...order, paymentStatus: "completed" } : order
+      )
+    );
+  };
 
   return (
     <div className="min-h-screen sm:border-l sm:border-r bg-gray-50 pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-10">
+      <div className="flex items-center justify-between px-4 py-4 bg-white border-b sticky top-0 z-10">
         <h1 className="text-lg font-semibold text-gray-900 ml-2">
           Orders Page
         </h1>
-        <Link to="/vendor/product/pricing">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ChartNoAxesGantt className="h-5 w-5" />
-          </Button>
-        </Link>
+        <VendorMenu />
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="pending" className="w-full flex flex-col">
-        <TabsList className="w-full justify-start h-12 p-0 bg-white border-b rounded-none sticky top-14 z-10 flex-shrink-0">
+        <TabsList className="w-full justify-start h-12 p-0 bg-white border-b rounded-none sticky top-12 z-10 flex-shrink-0">
           <TabsTrigger
             value="pending"
             className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none transition-colors"
@@ -191,10 +250,15 @@ export default function OrderPage() {
 
         <TabsContent
           value="pending"
-          className="px-4 space-y-2 py-2 flex-1 overflow-y-auto"
+          className="px-4 space-y-2 py-1 flex-1 overflow-y-auto"
         >
           {pendingOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard
+              key={order.id}
+              order={order}
+              onPaymentDone={handlePaymentDone}
+              showPaymentButton={false}
+            />
           ))}
         </TabsContent>
 
@@ -203,7 +267,12 @@ export default function OrderPage() {
           className="px-4 py-4 space-y-4 flex-1 overflow-y-auto"
         >
           {completedOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard
+              key={order.id}
+              order={order}
+              onPaymentDone={handlePaymentDone}
+              showPaymentButton={true}
+            />
           ))}
         </TabsContent>
       </Tabs>
@@ -214,7 +283,7 @@ export default function OrderPage() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Link to="/vendor" className="p-2">
-                <ShoppingBag className="h-6 w-6 text-gray-600" />
+                <ShoppingBag className="h-6 w-6 text-black" />
               </Link>
             </TooltipTrigger>
             <TooltipContent>
@@ -225,7 +294,7 @@ export default function OrderPage() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Link to="/vendor/store" className="p-2">
-                <Store className="h-6 w-6 text-gray-600" />
+                <Store className="h-6 w-6 text-gray-500" />
               </Link>
             </TooltipTrigger>
             <TooltipContent>
@@ -236,11 +305,19 @@ export default function OrderPage() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Link to="/vendor/product/pricing" className="p-2">
-                <Package className="h-6 w-6 text-gray-600" />
+                <Package className="h-6 w-6 text-gray-500" />
               </Link>
             </TooltipTrigger>
             <TooltipContent>
               <p>My Products</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Support</p>
             </TooltipContent>
           </Tooltip>
         </nav>
@@ -248,3 +325,13 @@ export default function OrderPage() {
     </div>
   );
 }
+
+const VendorMenu = () => {
+  const { logout } = useAuth();
+
+  return (
+    <Link to="/vendor/profile" className="ml-auto mr-2">
+      <UserCircle className="h-7 w-7 " />
+    </Link>
+  );
+};

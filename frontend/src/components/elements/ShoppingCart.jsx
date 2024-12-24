@@ -1,5 +1,20 @@
 import React, { useState } from "react";
-import { ChevronLeft, MapPin, Phone, Edit2, Minus, Plus } from "lucide-react";
+import {
+  ChevronLeft,
+  MapPin,
+  Phone,
+  Edit2,
+  Minus,
+  Plus,
+  Store,
+  History,
+  ShoppingCartIcon,
+  UserCircle,
+  User,
+  StoreIcon,
+  LogOut,
+  HistoryIcon,
+} from "lucide-react";
 import {
   Sheet,
   SheetClose,
@@ -8,9 +23,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const ShoppingCart = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("9:00 AM");
@@ -52,6 +80,19 @@ const ShoppingCart = () => {
     "4 - 6 PM",
     "6 - 8 PM",
   ];
+
+  const renderNavItem = (to, icon, label) => (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link to={to} className="p-2">
+          {icon}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{label}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
 
   const updateQuantity = (id, change) => {
     setOrderItems(
@@ -112,6 +153,7 @@ const ShoppingCart = () => {
             <ChevronLeft className="w-6 h-6 mr-2 text-gray-600" />
           </Link>
           <h1 className="text-lg font-semibold">Checkout</h1>
+          <UserMenu />
         </div>
 
         {/* Order Items */}
@@ -356,7 +398,7 @@ const ShoppingCart = () => {
         </div>
 
         {/* Confirm Button */}
-        <div className="p-4 border-t sticky bottom-0 bg-white">
+        <div className="px-4 pt-2 py-4 border-t mb-12 bg-white">
           <button
             onClick={handleSubmit}
             className="w-full py-3 bg-blue-500 text-white rounded font-semibold hover:bg-blue-600 transition-colors"
@@ -365,8 +407,46 @@ const ShoppingCart = () => {
           </button>
         </div>
       </div>
+      <TooltipProvider>
+        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+          {renderNavItem(
+            "/history",
+            <History className="h-6 w-6 text-gray-500" />,
+            "My Orders"
+          )}
+          {renderNavItem(
+            "/",
+            <Store className="h-6 w-6 text-gray-500" />,
+            "My Store"
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ShoppingCartIcon className="h-6 w-6 text-black cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>cart</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Support</p>
+            </TooltipContent>
+          </Tooltip>
+        </nav>
+      </TooltipProvider>
     </div>
   );
 };
 
 export default ShoppingCart;
+
+const UserMenu = () => {
+  return (
+    <Link to="/profile" className="ml-auto mr-2">
+      <UserCircle className="h-7 w-7 " />
+    </Link>
+  );
+};
