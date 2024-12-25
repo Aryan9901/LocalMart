@@ -25,7 +25,7 @@ export default function Header({ cart }) {
       <div className="container mx-auto px-4 h-16 flex items-center">
         <div className="flex items-center gap-2">
           <img src="/images/logo.jpg" alt="Logo" className="h-8 w-8" />
-          <h1 className="font-bold text-lg text-black">SabjiWale</h1>
+          <h1 className="font-bold text-lg text-black">Subziwale</h1>
         </div>
         {userRole === "vendor" ? (
           <VendorMenu />

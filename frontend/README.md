@@ -1,5 +1,5 @@
-# VeggShoppee UI
-VeggShoppee UI is the frontend of the Quick Commerce platform, developed using React. This document provides instructions to build and run the project, ensuring it's ready for deployment on AWS.
+# subziwale UI
+subziwale UI is the frontend of the Quick Commerce platform, developed using React. This document provides instructions to build and run the project, ensuring it's ready for deployment on AWS.
 
 ## Prerequisites
 
