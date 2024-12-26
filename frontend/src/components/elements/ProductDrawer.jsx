@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
   const [selectedWeights, setSelectedWeights] = useState({});
   const [quantities, setQuantities] = useState({});
   const [drawerHeight, setDrawerHeight] = useState("100vh");
+  const { userRole } = useAuth();
 
   useEffect(() => {
     const updateHeight = () => {
@@ -117,12 +119,14 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
                   )}
                 >
                   <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id={`weight-${index}`}
-                      checked={selectedWeights[weight] || false}
-                      onCheckedChange={() => handleWeightToggle(weight)}
-                      className="focus-visible:ring-offset-0 focus-visible:ring-1 focus:outline-none"
-                    />
+                    {userRole === "user" && (
+                      <Checkbox
+                        id={`weight-${index}`}
+                        checked={selectedWeights[weight] || false}
+                        onCheckedChange={() => handleWeightToggle(weight)}
+                        className="focus-visible:ring-offset-0 focus-visible:ring-1 focus:outline-none"
+                      />
+                    )}
                     <label
                       htmlFor={`weight-${index}`}
                       className="text-sm font-medium cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -159,21 +163,23 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
               ))}
             </div>
           </div>
-          <div className="border-t bg-white px-4 py-3 mt-auto">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-medium text-black">Total:</span>
-              <span className="font-bold text-lg text-black">
-                ₹{calculateTotalPrice()}
-              </span>
+          {userRole === "user" && (
+            <div className="border-t bg-white px-4 py-3 mt-auto">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium text-black">Total:</span>
+                <span className="font-bold text-lg text-black">
+                  ₹{calculateTotalPrice()}
+                </span>
+              </div>
+              <Button
+                className="w-full bg-blue-800 hover:bg-blue-700 text-white py-6"
+                onClick={handleAddToCart}
+                disabled={Object.values(selectedWeights).every((v) => !v)}
+              >
+                Add to Cart
+              </Button>
             </div>
-            <Button
-              className="w-full bg-blue-800 hover:bg-blue-700 text-white py-6"
-              onClick={handleAddToCart}
-              disabled={Object.values(selectedWeights).every((v) => !v)}
-            >
-              Add to Cart
-            </Button>
-          </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

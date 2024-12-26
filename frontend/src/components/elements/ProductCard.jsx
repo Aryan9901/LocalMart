@@ -1,4 +1,7 @@
+import { useAuth } from "../../contexts/AuthContext";
+
 export function ProductCard({ key, product, onSelect, onAddToCart }) {
+  const { userRole } = useAuth();
   const addToCartDefault = (e) => {
     e.stopPropagation();
     onAddToCart();
@@ -7,7 +10,9 @@ export function ProductCard({ key, product, onSelect, onAddToCart }) {
   return (
     <div
       className=" bg-white cursor-pointer rounded-lg overflow-hidden border"
-      onClick={() => onSelect(product)}
+      onClick={() => {
+        onSelect(product);
+      }}
       key={key}
     >
       <div className="relative">
@@ -21,12 +26,14 @@ export function ProductCard({ key, product, onSelect, onAddToCart }) {
           alt={product.name}
           className="w-full h-32 object-cover"
         />
-        <div
-          className="absolute -bottom-3 select-none cursor-pointer right-1 bg-white px-3 rounded-md border"
-          onClick={(e) => addToCartDefault(e, product, product.weights[0])}
-        >
-          Add
-        </div>
+        {userRole === "user" && (
+          <div
+            className="absolute -bottom-3 select-none cursor-pointer right-1 bg-white px-3 rounded-md border"
+            onClick={(e) => addToCartDefault(e, product, product.weights[0])}
+          >
+            Add
+          </div>
+        )}
       </div>
       <div className="py-3 px-1 space-y-2">
         <h3 className="font-medium text-sm">{product.name}</h3>
