@@ -20,13 +20,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { useAuth } from "../../contexts/AuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const initialProducts = [
   {
@@ -106,14 +109,19 @@ const initialProducts = [
 export default function PricingAvailability() {
   const [products, setProducts] = useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState("vegetables");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false); // Added state for dialog
   const navigate = useNavigate();
+
+  const handleNavigation = (to) => {
+    setShowConfirmDialog(true);
+  };
 
   const renderNavItem = (to, icon, label) => (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link to={to} className="p-2">
+        <button onClick={() => handleNavigation(to)} className="p-2">
           {icon}
-        </Link>
+        </button>
       </TooltipTrigger>
       <TooltipContent>
         <p>{label}</p>
@@ -163,6 +171,11 @@ export default function PricingAvailability() {
     (product) => product.category === selectedCategory
   );
 
+  const saveChanges = () => {
+    // Implement your save logic here
+    console.log("Saving changes...", products);
+  };
+
   return (
     <div className="flex sm:border-l sm:border-r h-screen flex-col bg-[#f5f5f5]">
       {/* Header */}
@@ -171,7 +184,7 @@ export default function PricingAvailability() {
           className="p-1"
           aria-label="Go back"
           onClick={() => {
-            navigate(-1);
+            setShowConfirmDialog(true); // Show dialog before navigating
           }}
         >
           <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -301,6 +314,9 @@ export default function PricingAvailability() {
             </li>
           ))}
         </ul>
+        <button className="px-4 py-2 bg-green-500 block mx-auto text-white rounded-md">
+          Save Chnages
+        </button>
       </div>
 
       <TooltipProvider>
@@ -320,16 +336,41 @@ export default function PricingAvailability() {
             <Package className="h-6 w-6 text-black" />,
             "My Products"
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Support</p>
-            </TooltipContent>
-          </Tooltip>
+          {renderNavItem(
+            "/support",
+            <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />,
+            "Support"
+          )}
         </nav>
       </TooltipProvider>
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+          </DialogHeader>
+          <p>You have unsaved changes. Do you want to save before leaving?</p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowConfirmDialog(false);
+                navigate(-1);
+              }}
+            >
+              Leave without saving
+            </Button>
+            <Button
+              onClick={() => {
+                saveChanges();
+                setShowConfirmDialog(false);
+                navigate(-1);
+              }}
+            >
+              Save and leave
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
