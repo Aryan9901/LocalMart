@@ -32,7 +32,7 @@ export default function SearchPage() {
       );
       setSearchResults(uniqueResults);
     } else {
-      setSearchResults([]);
+      setSearchResults(allProducts);
     }
   }, [searchTerm]);
 
@@ -92,28 +92,21 @@ export default function SearchPage() {
         </header>
 
         <main className="container mx-auto px-2 py-3">
-          {searchResults.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2">
-              {searchResults.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onSelect={() => handleProductSelect(product)}
-                  onAddToCart={() => handleAddToCart(product)}
-                />
-              ))}
-            </div>
-          ) : searchTerm ? (
+          <div className="grid grid-cols-2 gap-2">
+            {searchResults.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onSelect={() => handleProductSelect(product)}
+                onAddToCart={() => handleAddToCart(product)}
+              />
+            ))}
+          </div>
+          {searchTerm && searchResults.length === 0 && (
             <div className="text-center mt-8">
               <p className="text-gray-500">No products found</p>
               <p className="text-sm text-gray-400 mt-2">
                 Try searching for a different product
-              </p>
-            </div>
-          ) : (
-            <div className="text-center mt-8">
-              <p className="text-gray-500">
-                Start typing to search for products
               </p>
             </div>
           )}

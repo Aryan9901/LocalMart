@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ChevronLeft,
   MapPin,
@@ -10,10 +10,8 @@ import {
   History,
   ShoppingCartIcon,
   UserCircle,
-  User,
-  StoreIcon,
-  LogOut,
-  HistoryIcon,
+  PlusCircle,
+  Clock,
 } from "lucide-react";
 import {
   Sheet,
@@ -29,37 +27,24 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+
+const formatTime = (time) => {
+  const [hours, minutes] = time.split(":");
+  const date = new Date(0, 0, 0, hours, minutes);
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
 
 const ShoppingCart = () => {
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("9:00 AM");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [selectedDay, setSelectedDay] = useState("today");
   const [orderItems, setOrderItems] = useState([
-    { id: 1, name: "Potato (Aloo)", quantity: 1, price: 39, unit: "1 kg x 1" },
-    {
-      id: 2,
-      name: "Chilli (Mirchi)",
-      quantity: 1,
-      price: 19,
-      unit: "100 gm x 1",
-    },
-    {
-      id: 3,
-      name: "Tomato (Tamatar)",
-      quantity: 1,
-      price: 29,
-      unit: "500 gm x 1",
-    },
-    { id: 4, name: "Mushroom", quantity: 1, price: 34, unit: "5 pieces x 1" },
+    { id: 1, name: "Potato (Aloo)", quantity: 1, price: 39, unit: "1 kg" },
+    { id: 2, name: "Chilli (Mirchi)", quantity: 1, price: 19, unit: "100 gm" },
+    { id: 3, name: "Tomato (Tamatar)", quantity: 1, price: 29, unit: "500 gm" },
+    { id: 4, name: "Mushroom", quantity: 1, price: 34, unit: "5 pieces" },
   ]);
   const [address, setAddress] = useState({
     house: "1258, Gali No. 14, Agarkhar",
@@ -71,15 +56,32 @@ const ShoppingCart = () => {
   });
   const [tempAddress, setTempAddress] = useState({ ...address });
   const [notes, setNotes] = useState("");
+  const [expressDelivery, setExpressDelivery] = useState(false);
 
   const timeSlots = [
-    "8 - 10 AM",
-    "10 - 12 PM",
-    "12 - 2 PM",
-    "2 - 4 PM",
-    "4 - 6 PM",
-    "6 - 8 PM",
+    "08:00-10:00",
+    "10:00-12:00",
+    "12:00-14:00",
+    "14:00-16:00",
+    "16:00-18:00",
+    "18:00-20:00",
   ];
+
+  useEffect(() => {
+    const availableSlots = timeSlots.filter((slot) => {
+      if (selectedDay === "tomorrow") {
+        return true; // All slots are available for tomorrow
+      } else {
+        return isSlotAvailable(slot);
+      }
+    });
+
+    if (availableSlots.length > 0 && !selectedTimeSlot) {
+      setSelectedTimeSlot(availableSlots[0]);
+    } else if (availableSlots.length === 0) {
+      setSelectedTimeSlot("");
+    }
+  }, [selectedDay]);
 
   const renderNavItem = (to, icon, label) => (
     <Tooltip>
@@ -96,14 +98,16 @@ const ShoppingCart = () => {
 
   const updateQuantity = (id, change) => {
     setOrderItems(
-      orderItems
-        .map((item) =>
-          item.id === id
-            ? { ...item, quantity: Math.max(0, item.quantity + change) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
+      orderItems.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.max(1, item.quantity + change) }
+          : item
+      )
     );
+  };
+
+  const addNewItem = () => {
+    console.log("Adding new item");
   };
 
   const calculateTotal = () => {
@@ -137,11 +141,26 @@ const ShoppingCart = () => {
     console.log("Order submitted", {
       items: orderItems,
       totals,
+      expressDelivery,
       deliveryDay: selectedDay,
-      deliveryTime: selectedTimeSlot,
+      deliveryTime: expressDelivery ? "Within 1 hour" : selectedTimeSlot,
       address,
       notes,
     });
+  };
+
+  const isSlotAvailable = (slot) => {
+    const currentTime = new Date();
+    const [start] = slot.split("-");
+    const [startHours, startMinutes] = start.split(":");
+    const slotStartTime = new Date();
+    slotStartTime.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
+
+    if (selectedDay === "tomorrow") {
+      return true;
+    } else {
+      return slotStartTime > currentTime;
+    }
   };
 
   return (
@@ -158,7 +177,14 @@ const ShoppingCart = () => {
 
         {/* Order Items */}
         <div className="p-4 border-b">
-          <h2 className="font-semibold mb-2">Order Items</h2>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="font-semibold">Order Items</h2>
+            <Button variant="outline" size="sm">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Add Item
+            </Button>
+          </div>
+
           {orderItems.map((item) => (
             <div
               key={item.id}
@@ -345,44 +371,72 @@ const ShoppingCart = () => {
 
         {/* Time Slot */}
         <div className="p-4 border-b">
-          <h2 className="font-semibold mb-2">Time Slot</h2>
-          <div className="flex mb-4">
-            <button
-              className={`flex-1 py-2 rounded-l transition-colors ${
-                selectedDay === "today"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-              onClick={() => setSelectedDay("today")}
-            >
-              Today
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-r transition-colors ${
-                selectedDay === "tomorrow"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-              onClick={() => setSelectedDay("tomorrow")}
-            >
-              Tomorrow
-            </button>
+          <h2 className="font-semibold mb-2">Delivery Time</h2>
+          <div className="flex items-center mb-4">
+            <input
+              type="checkbox"
+              id="expressDelivery"
+              checked={expressDelivery}
+              onChange={(e) => setExpressDelivery(e.target.checked)}
+              className="mr-2"
+            />
+            <label htmlFor="expressDelivery" className="text-sm">
+              Express Delivery (within 1 hour)
+            </label>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {timeSlots.map((slot) => (
-              <button
-                key={slot}
-                className={`py-2 rounded transition-colors ${
-                  selectedTimeSlot === slot
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-                onClick={() => setSelectedTimeSlot(slot)}
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
+          {!expressDelivery && (
+            <>
+              <div className="flex mb-4">
+                <button
+                  className={`flex-1 py-2 rounded-l transition-colors ${
+                    selectedDay === "today"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                  onClick={() => setSelectedDay("today")}
+                >
+                  Today
+                </button>
+                <button
+                  className={`flex-1 py-2 rounded-r transition-colors ${
+                    selectedDay === "tomorrow"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                  onClick={() => setSelectedDay("tomorrow")}
+                >
+                  Tomorrow
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {timeSlots.map((slot) => {
+                  const [start, end] = slot.split("-");
+                  const displaySlot = `${formatTime(start)} - ${formatTime(
+                    end
+                  )}`;
+                  return (
+                    <button
+                      key={slot}
+                      className={`py-2 px-2 text-sm rounded transition-colors ${
+                        selectedTimeSlot === slot
+                          ? "bg-blue-500 text-white"
+                          : isSlotAvailable(slot)
+                          ? "bg-gray-200  text-gray-700 hover:bg-gray-300"
+                          : "bg-gray-300 hidden opacity-70 text-gray-500 cursor-not-allowed"
+                      }`}
+                      onClick={() =>
+                        isSlotAvailable(slot) && setSelectedTimeSlot(slot)
+                      }
+                      disabled={!isSlotAvailable(slot)}
+                    >
+                      <Clock className="w-4 h-4 inline-block mr-2" />
+                      {displaySlot}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Notes */}
@@ -424,7 +478,7 @@ const ShoppingCart = () => {
               <ShoppingCartIcon className="h-6 w-6 text-black cursor-pointer" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>cart</p>
+              <p>Cart</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
@@ -446,7 +500,7 @@ export default ShoppingCart;
 const UserMenu = () => {
   return (
     <Link to="/profile" className="ml-auto mr-2">
-      <UserCircle className="h-7 w-7 " />
+      <UserCircle className="h-7 w-7" />
     </Link>
   );
 };

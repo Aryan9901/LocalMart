@@ -47,6 +47,26 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+const timeSlots = [
+  "08:00-10:00",
+  "10:00-12:00",
+  "12:00-14:00",
+  "14:00-16:00",
+  "16:00-18:00",
+  "18:00-20:00",
+];
+
+const formatTimeSlot = (slot) => {
+  const [start, end] = slot.split("-");
+  return `${formatTime(start)} - ${formatTime(end)}`;
+};
+
+const formatTime = (time) => {
+  const [hours, minutes] = time.split(":");
+  const date = new Date(0, 0, 0, hours, minutes);
+  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+};
+
 export default function OrderDetails() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
@@ -126,7 +146,7 @@ export default function OrderDetails() {
 
   const orderStatus = "Pending"; // This could be 'Pending', 'Delivered', or 'Cancelled'
   const orderDate = new Date("2024-12-25T14:00:00"); // Example date
-  const timeSlot = "2-4 PM";
+  const timeSlot = "14:00-16:00";
   const currentTime = new Date();
   const slotStartTime = new Date(orderDate);
   slotStartTime.setHours(14, 0, 0, 0);
@@ -170,7 +190,7 @@ export default function OrderDetails() {
       } to:`,
       format(rescheduleDate, "PPP"),
       "Time slot:",
-      selectedTimeSlot
+      formatTimeSlot(selectedTimeSlot)
     );
     setIsRescheduleModalOpen(false);
   };
@@ -317,7 +337,8 @@ export default function OrderDetails() {
             <span className="font-medium">{format(orderDate, "PPP")}</span>
           </p>
           <p className="text-sm text-gray-600">
-            Time Slot: <span className="font-medium">{timeSlot}</span>
+            Time Slot:{" "}
+            <span className="font-medium">{formatTimeSlot(timeSlot)}</span>
           </p>
         </section>
 
@@ -462,12 +483,11 @@ export default function OrderDetails() {
                   <SelectValue placeholder="Select a time slot" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="8-10am">8-10am</SelectItem>
-                  <SelectItem value="10-12pm">10-12pm</SelectItem>
-                  <SelectItem value="12-2pm">12-2pm</SelectItem>
-                  <SelectItem value="2-4pm">2-4pm</SelectItem>
-                  <SelectItem value="4-6pm">4-6pm</SelectItem>
-                  <SelectItem value="6-8pm">6-8pm</SelectItem>
+                  {timeSlots.map((slot) => (
+                    <SelectItem key={slot} value={slot}>
+                      {formatTimeSlot(slot)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
