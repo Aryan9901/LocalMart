@@ -8,9 +8,8 @@ import {
   Package,
   Phone,
   UserCircle,
-  StoreIcon,
-  LogOut,
-  User,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +36,7 @@ const initialProducts = [
     name: "Potato",
     localName: "Aloo",
     price: 30,
-    mrp: 35,
+    // mrp: 35,
     netPrice: 28,
     unit: "kg",
     image: "/images/patato.png",
@@ -49,7 +48,7 @@ const initialProducts = [
     name: "Tomato",
     localName: "Tamatar",
     price: 45,
-    mrp: 50,
+    // mrp: 50,
     netPrice: 42,
     unit: "kg",
     image: "/images/onion.png",
@@ -61,7 +60,7 @@ const initialProducts = [
     name: "Mushroom",
     localName: "",
     price: 60,
-    mrp: 65,
+    // mrp: 65,
     netPrice: 57,
     unit: "pack",
     image: "/images/tamato.png",
@@ -73,7 +72,7 @@ const initialProducts = [
     name: "Apple",
     localName: "Seb",
     price: 180,
-    mrp: 200,
+    // mrp: 200,
     netPrice: 170,
     unit: "kg",
     image: "/images/redchilli.png",
@@ -85,7 +84,7 @@ const initialProducts = [
     name: "Banana",
     localName: "Kela",
     price: 60,
-    mrp: 70,
+    // mrp: 70,
     netPrice: 55,
     unit: "dozen",
     image: "/images/tamato.png",
@@ -97,7 +96,7 @@ const initialProducts = [
     name: "Milk",
     localName: "Doodh",
     price: 60,
-    mrp: 65,
+    // mrp: 65,
     netPrice: 58,
     unit: "litre",
     image: "/images/redchilli.png",
@@ -109,11 +108,28 @@ const initialProducts = [
 export default function PricingAvailability() {
   const [products, setProducts] = useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState("vegetables");
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false); // Added state for dialog
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [changedItems, setChangedItems] = useState(new Set());
+  const [navigation, setNavigation] = useState("");
+  const [newCategory, setNewCategory] = useState(null);
   const navigate = useNavigate();
 
   const handleNavigation = (to) => {
-    setShowConfirmDialog(true);
+    if (changedItems.size > 0) {
+      // setNewCategory(to);
+      setShowConfirmDialog(true);
+      setNavigation(to);
+    } else {
+      navigateTo(to);
+    }
+  };
+
+  const navigateTo = (to) => {
+    if (typeof to === "number") {
+      navigate(to);
+    } else {
+      navigate(to);
+    }
   };
 
   const renderNavItem = (to, icon, label) => (
@@ -132,21 +148,28 @@ export default function PricingAvailability() {
   useEffect(() => {
     console.log("Initial product prices:");
     initialProducts.forEach((product) => {
-      console.log(
-        `${product.name}: MRP - ₹${product.mrp}, Net Price - ₹${product.netPrice}`
-      );
+      console.log(`${product.name}: Net Price - ₹${product.netPrice}`);
     });
   }, []);
 
-  const updatePrice = (id, field, newValue) => {
-    const numericValue = newValue.replace(/[^0-9]/g, "");
+  const updatePrice = (id, newValue) => {
     setProducts(
       products.map((product) => {
         if (product.id === id) {
-          return {
+          const updatedProduct = {
             ...product,
-            [field]: numericValue === "" ? "" : Number(numericValue),
+            netPrice: newValue,
           };
+          if (updatedProduct.netPrice !== product.netPrice) {
+            setChangedItems((prev) => new Set(prev).add(id));
+          } else {
+            setChangedItems((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(id);
+              return newSet;
+            });
+          }
+          return updatedProduct;
         }
         return product;
       })
@@ -157,10 +180,12 @@ export default function PricingAvailability() {
     setProducts(
       products.map((product) => {
         if (product.id === id) {
-          return {
+          const updatedProduct = {
             ...product,
             available: !product.available,
           };
+          setChangedItems((prev) => new Set(prev).add(id));
+          return updatedProduct;
         }
         return product;
       })
@@ -172,8 +197,18 @@ export default function PricingAvailability() {
   );
 
   const saveChanges = () => {
-    // Implement your save logic here
-    console.log("Saving changes...", products);
+    console.log("Saving changes...");
+    const changedProducts = products.filter((product) =>
+      changedItems.has(product.id)
+    );
+    console.log("Changed products:", changedProducts);
+    setChangedItems(new Set());
+    // Here you would typically make an API call to save the changes
+  };
+
+  const handleCategoryChange = (newCategory) => {
+    setSelectedCategory(newCategory);
+    setShowConfirmDialog(false);
   };
 
   return (
@@ -183,9 +218,7 @@ export default function PricingAvailability() {
         <button
           className="p-1"
           aria-label="Go back"
-          onClick={() => {
-            setShowConfirmDialog(true); // Show dialog before navigating
-          }}
+          onClick={() => handleNavigation(-1)}
         >
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </button>
@@ -197,7 +230,14 @@ export default function PricingAvailability() {
       <div className="px-2 py-1 sticky top-14 bg-[#f5f5f5] z-10 shadow-sm">
         <Tabs
           defaultValue="vegetables"
-          onValueChange={setSelectedCategory}
+          onValueChange={(category) => {
+            if (changedItems.size > 0) {
+              setNewCategory(category);
+              setShowConfirmDialog(true);
+            } else {
+              setSelectedCategory(category);
+            }
+          }}
           className="w-full"
         >
           <TabsList className="w-full bg-white rounded-lg px-1 py-1 gap-2 shadow-none">
@@ -243,9 +283,8 @@ export default function PricingAvailability() {
         {/* Field Headers */}
         <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-600">
           <div className="w-1/3">Product</div>
-          <div className="flex items-center justify-end w-2/3">
-            <div className="w-14 text-right">MRP</div>
-            <div className="w-14 text-right ml-1">Net</div>
+          <div className="flex items-center justify-end gap-1 w-2/3">
+            <div className="w-20 text-center ml-1">Price</div>
             <div className="w-12 text-center">Unit</div>
             <div className="w-8 text-center">Stock</div>
           </div>
@@ -255,7 +294,9 @@ export default function PricingAvailability() {
           {filteredProducts.map((product) => (
             <li
               key={product.id}
-              className="flex items-center my-2 w-full pr-2 rounded-md border-b bg-white border-gray-200"
+              className={`flex items-center my-2 w-full pr-2 rounded-md border-b ${
+                changedItems.has(product.id) ? "bg-yellow-50" : "bg-white"
+              } border-gray-200`}
             >
               <img
                 src={product.image}
@@ -273,29 +314,36 @@ export default function PricingAvailability() {
                     )}
                   </h2>
                 </div>
-                <div className="flex items-center justify-end w-2/3">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="MRP"
-                    value={product.mrp === "" ? "" : product.mrp}
-                    onChange={(e) =>
-                      updatePrice(product.id, "mrp", e.target.value)
-                    }
-                    className="h-6 w-14 text-sm border-b border-gray-300 focus:outline-none text-right"
-                  />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="Net"
-                    value={product.netPrice === "" ? "" : product.netPrice}
-                    onChange={(e) =>
-                      updatePrice(product.id, "netPrice", e.target.value)
-                    }
-                    className="h-6 w-14 text-sm border-b border-gray-300 focus:outline-none text-right ml-1"
-                  />
+                <div className="flex items-center gap-1 justify-end w-2/3">
+                  <div className="flex items-center">
+                    <button
+                      onClick={() =>
+                        updatePrice(product.id, product.netPrice - 5)
+                      }
+                      className="px-1"
+                    >
+                      <Minus className="h-4 w-4 text-gray-500" />
+                    </button>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="Price"
+                      value={product.netPrice === "" ? "" : product.netPrice}
+                      onChange={(e) =>
+                        updatePrice(product.id, Number(e.target.value))
+                      }
+                      className="h-6 w-14 text-sm border-b border-gray-300 focus:outline-none text-center"
+                    />
+                    <button
+                      onClick={() =>
+                        updatePrice(product.id, product.netPrice + 5)
+                      }
+                      className="px-1"
+                    >
+                      <Plus className="h-4 w-4 text-gray-500" />
+                    </button>
+                  </div>
                   <span className="text-sm text-gray-500 w-12 text-center">
                     {product.unit}
                   </span>
@@ -314,9 +362,25 @@ export default function PricingAvailability() {
             </li>
           ))}
         </ul>
-        <button className="px-4 py-2 bg-green-500 block mx-auto text-white rounded-md">
-          Save Chnages
-        </button>
+        {changedItems.size > 0 && (
+          <div className="fixed bottom-16 left-1/2 transform -translate-x-1/2 flex gap-2">
+            <button
+              onClick={() => {
+                setProducts(initialProducts);
+                setChangedItems(new Set());
+              }}
+              className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-lg"
+            >
+              Discard Changes
+            </button>
+            <button
+              onClick={saveChanges}
+              className="px-4 py-2 bg-green-500 text-white rounded-md shadow-lg"
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
 
       <TooltipProvider>
@@ -348,25 +412,55 @@ export default function PricingAvailability() {
           <DialogHeader>
             <DialogTitle>Unsaved Changes</DialogTitle>
           </DialogHeader>
-          <p>You have unsaved changes. Do you want to save before leaving?</p>
+          <p>
+            You have unsaved changes. Do you want to save before{" "}
+            {newCategory && typeof newCategory === "string"
+              ? "changing categories"
+              : "leaving"}
+            ?
+          </p>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
                 setShowConfirmDialog(false);
-                navigate(-1);
+                setProducts(initialProducts);
+                setChangedItems(new Set());
+                if (navigation) {
+                  navigate(navigation);
+                } else {
+                  if (newCategory) {
+                    if (typeof newCategory === "string") {
+                      setSelectedCategory(newCategory);
+                    } else {
+                      navigateTo(newCategory);
+                    }
+                  }
+                  setNewCategory(null);
+                }
               }}
             >
-              Leave without saving
+              Discard changes
             </Button>
             <Button
               onClick={() => {
                 saveChanges();
                 setShowConfirmDialog(false);
-                navigate(-1);
+                if (navigation) {
+                  navigate(navigation);
+                } else {
+                  if (newCategory) {
+                    if (typeof newCategory === "string") {
+                      setSelectedCategory(newCategory);
+                    } else {
+                      navigateTo(newCategory);
+                    }
+                  }
+                  setNewCategory(null);
+                }
               }}
             >
-              Save and leave
+              Save and continue
             </Button>
           </DialogFooter>
         </DialogContent>
