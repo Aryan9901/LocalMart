@@ -16,6 +16,9 @@ import {
   User,
   UserCircle,
   X,
+  Plus,
+  Minus,
+  PlusCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,6 +55,46 @@ export default function OrderDetails() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const navigate = useNavigate();
   const { userRole } = useAuth();
+  const [orderItems, setOrderItems] = useState([
+    {
+      name: "Potato (Aloo)",
+      quantity: 1,
+      price: 39,
+      image: "/images/patato.png",
+    },
+    {
+      name: "Chilli (Mirchi)",
+      quantity: 1,
+      price: 19,
+      image: "/images/onion.png",
+    },
+    {
+      name: "Tomato (Tamatar)",
+      quantity: 1,
+      price: 29,
+      image: "/images/redchilli.png",
+    },
+    {
+      name: "Mushroom",
+      quantity: 1,
+      price: 34,
+      image: "/images/tamato.png",
+    },
+  ]);
+
+  const handleQuantityChange = (index, change) => {
+    const newOrderItems = [...orderItems];
+    newOrderItems[index].quantity = Math.max(
+      0,
+      newOrderItems[index].quantity + change
+    );
+    setOrderItems(newOrderItems);
+  };
+
+  const handleAddNewItem = () => {
+    // This function would open a modal or navigate to a page to add a new item
+    console.log("Add new item");
+  };
 
   const renderNavItem = (to, icon, label) => (
     <Tooltip>
@@ -66,39 +109,19 @@ export default function OrderDetails() {
     </Tooltip>
   );
 
-  const orderItems = [
-    {
-      name: "Potato (Aloo)",
-      quantity: "1 kg x 1",
-      price: 39,
-      image: "/images/patato.png",
-    },
-    {
-      name: "Chilli (Mirchi)",
-      quantity: "100 gm x 1",
-      price: 19,
-      image: "/images/onion.png",
-    },
-    {
-      name: "Tomato (Tamatar)",
-      quantity: "500 gm x 1",
-      price: 29,
-      image: "/images/redchilli.png",
-    },
-    {
-      name: "Mushroom",
-      quantity: "5 pieces x 1",
-      price: 34,
-      image: "/images/tamato.png",
-    },
-  ];
-
   const orderSummary = {
-    mrpTotal: 299,
+    mrpTotal: orderItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    ),
     discount: 30,
     platformFees: 10,
     deliveryCharges: 0,
-    total: 269,
+    get total() {
+      return (
+        this.mrpTotal - this.discount + this.platformFees + this.deliveryCharges
+      );
+    },
   };
 
   const orderStatus = "Pending"; // This could be 'Pending', 'Delivered', or 'Cancelled'
@@ -181,20 +204,59 @@ export default function OrderDetails() {
 
       <main className="mx-auto mb-16 max-w-lg space-y-4 p-4">
         <section className="rounded-lg bg-white p-4">
-          <h2 className="mb-4 font-medium">Order Items</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-medium">Order Items</h2>
+            {userRole === "vendor" && (
+              <Button variant="outline" size="sm" onClick={handleAddNewItem}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Add Item
+              </Button>
+            )}
+          </div>
           <div className="space-y-4">
             {orderItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-3">
+              <div
+                key={index}
+                className={`flex items-center gap-3 ${
+                  item.quantity === 0 ? "opacity-50" : ""
+                }`}
+              >
                 <img
                   src={item.image}
                   alt={item.name}
                   className="rounded-md w-16"
                 />
                 <div className="flex-1">
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-gray-500">{item.quantity}</p>
+                  <h3 className="font-medium text-sm">{item.name}</h3>
+                  <p className="text-xs text-gray-500">
+                    ₹ {item.price} per unit
+                  </p>
                 </div>
-                <p className="font-medium">₹ {item.price}</p>
+                {userRole === "vendor" && (
+                  <div className="flex items-center">
+                    <Button
+                      variant="outline"
+                      className="h-7 w-7 px-2 border-none"
+                      onClick={() => handleQuantityChange(index, -1)}
+                      disabled={item.quantity === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="mx-2">{item.quantity}</span>
+                    <Button
+                      variant="outline"
+                      className="h-7 w-7 px-2 border-none"
+                      onClick={() => handleQuantityChange(index, 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                <p className="font-medium text-sm">
+                  {item.quantity === 0
+                    ? "0"
+                    : `₹ ${item.price * item.quantity}`}
+                </p>
               </div>
             ))}
           </div>
@@ -499,7 +561,7 @@ const UserMenu = () => {
   const { userRole } = useAuth();
 
   return (
-    <div className="ml-auto mr-2">
+    <div className="ml-auto flex items-center justify-center mr-2">
       <Link
         to={userRole === "vendor" ? "/vendor/profile" : "/profile"}
         className="ml-auto mr-2"
