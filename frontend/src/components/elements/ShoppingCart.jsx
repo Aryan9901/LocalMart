@@ -370,73 +370,75 @@ const ShoppingCart = () => {
         </div>
 
         {/* Time Slot */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b select-none">
           <h2 className="font-semibold mb-2">Delivery Time</h2>
-          <div className="flex items-center mb-4">
+          <div className="flex items-center mb-4 select-none">
             <input
               type="checkbox"
               id="expressDelivery"
               checked={expressDelivery}
               onChange={(e) => setExpressDelivery(e.target.checked)}
-              className="mr-2"
+              className="mr-2 "
             />
-            <label htmlFor="expressDelivery" className="text-sm">
+            <label htmlFor="expressDelivery" className="text-sm cursor-pointer">
               Express Delivery (within 1 hour)
             </label>
           </div>
-          {!expressDelivery && (
-            <>
-              <div className="flex mb-4">
+
+          <div className="flex mb-4">
+            <button
+              className={`flex-1 py-2 rounded-l transition-colors ${
+                expressDelivery
+                  ? "cursor-not-allowed bg-gray-300 opacity-55"
+                  : selectedDay === "today"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+              onClick={() => setSelectedDay("today")}
+              disabled={expressDelivery}
+            >
+              Today
+            </button>
+            <button
+              className={`flex-1 py-2 rounded-r transition-colors ${
+                expressDelivery
+                  ? "cursor-not-allowed bg-gray-300 opacity-55"
+                  : selectedDay === "tomorrow"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+              onClick={() => setSelectedDay("tomorrow")}
+            >
+              Tomorrow
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {timeSlots.map((slot) => {
+              const [start, end] = slot.split("-");
+              const displaySlot = `${formatTime(start)} - ${formatTime(end)}`;
+              return (
                 <button
-                  className={`flex-1 py-2 rounded-l transition-colors ${
-                    selectedDay === "today"
+                  key={slot}
+                  className={`py-2 px-2 text-sm rounded transition-colors ${
+                    expressDelivery
+                      ? "cursor-not-allowed bg-gray-300 opacity-55"
+                      : selectedTimeSlot === slot
                       ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700"
+                      : isSlotAvailable(slot)
+                      ? "bg-gray-100  text-gray-700 hover:bg-gray-300"
+                      : "bg-gray-300  opacity-70 text-gray-500 cursor-not-allowed"
                   }`}
-                  onClick={() => setSelectedDay("today")}
+                  onClick={() =>
+                    isSlotAvailable(slot) && setSelectedTimeSlot(slot)
+                  }
+                  disabled={!isSlotAvailable(slot) || expressDelivery}
                 >
-                  Today
+                  <Clock className="w-4 h-4 inline-block mr-2" />
+                  {displaySlot}
                 </button>
-                <button
-                  className={`flex-1 py-2 rounded-r transition-colors ${
-                    selectedDay === "tomorrow"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                  onClick={() => setSelectedDay("tomorrow")}
-                >
-                  Tomorrow
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {timeSlots.map((slot) => {
-                  const [start, end] = slot.split("-");
-                  const displaySlot = `${formatTime(start)} - ${formatTime(
-                    end
-                  )}`;
-                  return (
-                    <button
-                      key={slot}
-                      className={`py-2 px-2 text-sm rounded transition-colors ${
-                        selectedTimeSlot === slot
-                          ? "bg-blue-500 text-white"
-                          : isSlotAvailable(slot)
-                          ? "bg-gray-200  text-gray-700 hover:bg-gray-300"
-                          : "bg-gray-300 hidden opacity-70 text-gray-500 cursor-not-allowed"
-                      }`}
-                      onClick={() =>
-                        isSlotAvailable(slot) && setSelectedTimeSlot(slot)
-                      }
-                      disabled={!isSlotAvailable(slot)}
-                    >
-                      <Clock className="w-4 h-4 inline-block mr-2" />
-                      {displaySlot}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
+              );
+            })}
+          </div>
         </div>
 
         {/* Notes */}
