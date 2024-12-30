@@ -145,7 +145,7 @@ export default function OrderDetails() {
   };
 
   const orderStatus = "Pending"; // This could be 'Pending', 'Delivered', or 'Cancelled'
-  const orderDate = new Date("2024-12-25T14:00:00"); // Example date
+  const orderDate = new Date("2025-12-25T14:00:00"); // Example date
   const timeSlot = "14:00-16:00";
   const currentTime = new Date();
   const slotStartTime = new Date(orderDate);
@@ -330,7 +330,8 @@ export default function OrderDetails() {
         <section className="rounded-lg bg-white p-4">
           <h2 className="mb-4 font-medium">Order Status</h2>
           <p className="text-sm text-gray-600">
-            Status: <span className="font-medium">{orderStatus}</span>
+            Status:{" "}
+            <span className="font-medium text-red-400">{orderStatus}</span>
           </p>
           <p className="text-sm text-gray-600">
             Date:{" "}
