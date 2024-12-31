@@ -12,27 +12,29 @@ export function useCart() {
 
   const addToCart = (item) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
-      if (existingItem) {
-        return prevCart.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
+      const existingItemIndex = prevCart.findIndex(
+        (cartItem) => cartItem.id === item.id && cartItem.weight === item.weight
+      );
+      if (existingItemIndex > -1) {
+        const newCart = [...prevCart];
+        newCart[existingItemIndex].quantity += item.quantity;
+        return newCart;
       }
-      return [...prevCart, { ...item, quantity: 1 }];
+      return [...prevCart, item];
     });
   };
 
-  const removeFromCart = (itemId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== itemId));
+  const removeFromCart = (itemId, weight) => {
+    setCart((prevCart) =>
+      prevCart.filter((item) => !(item.id === itemId && item.weight === weight))
+    );
   };
 
-  const updateQuantity = (itemId, change) => {
+  const updateQuantity = (itemId, weight, change) => {
     setCart((prevCart) =>
       prevCart
         .map((item) =>
-          item.id === itemId
+          item.id === itemId && item.weight === weight
             ? { ...item, quantity: Math.max(0, item.quantity + change) }
             : item
         )

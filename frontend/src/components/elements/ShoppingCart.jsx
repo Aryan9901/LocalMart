@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { useCart } from "@/hooks/useCart";
 
 const formatTime = (time) => {
   const [hours, minutes] = time.split(":");
@@ -46,12 +47,7 @@ const ShoppingCart = () => {
       return "today";
     }
   });
-  const [orderItems, setOrderItems] = useState([
-    { id: 1, name: "Potato (Aloo)", quantity: 1, price: 39, unit: "1 kg" },
-    { id: 2, name: "Chilli (Mirchi)", quantity: 1, price: 19, unit: "100 gm" },
-    { id: 3, name: "Tomato (Tamatar)", quantity: 1, price: 29, unit: "500 gm" },
-    { id: 4, name: "Mushroom", quantity: 1, price: 34, unit: "5 pieces" },
-  ]);
+  const { cart, updateQuantity, removeFromCart } = useCart();
   const [address, setAddress] = useState({
     house: "1258, Gali No. 14, Agarkhar",
     area: "Jamnipali",
@@ -103,24 +99,12 @@ const ShoppingCart = () => {
     </Tooltip>
   );
 
-  const updateQuantity = (id, change) => {
-    setOrderItems(
-      orderItems
-        .map((item) =>
-          item.id === id
-            ? { ...item, quantity: Math.max(0, item.quantity + change) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const addNewItem = () => {
-    console.log("Adding new item");
+  const handleUpdateQuantity = (id, weight, change) => {
+    updateQuantity(id, weight, change);
   };
 
   const calculateTotal = () => {
-    const subtotal = orderItems.reduce(
+    const subtotal = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
@@ -148,7 +132,7 @@ const ShoppingCart = () => {
 
   const handleSubmit = () => {
     console.log("Order submitted", {
-      items: orderItems,
+      items: cart,
       totals,
       expressDelivery,
       selfPickup,
@@ -195,9 +179,9 @@ const ShoppingCart = () => {
             </Button>
           </div>
 
-          {orderItems.map((item) => (
+          {cart.map((item) => (
             <div
-              key={item.id}
+              key={`${item.id}-${item.weight}`}
               className="flex items-center justify-between mb-2"
             >
               <div className="flex items-center">
@@ -208,19 +192,19 @@ const ShoppingCart = () => {
                 />
                 <div>
                   <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-gray-500">{item.unit}</p>
+                  <p className="text-sm text-gray-500">{item.weight}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <button
-                  onClick={() => updateQuantity(item.id, -1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.weight, -1)}
                   className="p-1 bg-gray-200 rounded-full"
                 >
                   <Minus size={16} />
                 </button>
                 <span className="px-2">{item.quantity}</span>
                 <button
-                  onClick={() => updateQuantity(item.id, 1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.weight, 1)}
                   className="p-1 bg-gray-200 rounded-full"
                 >
                   <Plus size={16} />

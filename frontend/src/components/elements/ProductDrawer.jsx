@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
-export function ProductDrawer({ product, isOpen, onClose }) {
+export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
   const [quantities, setQuantities] = useState({});
   const [drawerHeight, setDrawerHeight] = useState("100vh");
   const { userRole } = useAuth();
@@ -54,18 +54,14 @@ export function ProductDrawer({ product, isOpen, onClose }) {
     }, 0);
   };
 
-  const handleGoToCart = () => {
+  const handleAddToCart = () => {
     if (!product) return;
-    const selectedItems = Object.entries(quantities)
+    Object.entries(quantities)
       .filter(([weight, quantity]) => quantity > 0)
-      .map(([weight, quantity]) => ({
-        ...product,
-        selectedWeight: weight,
-        quantity,
-        totalPrice: product.price * quantity,
-      }));
+      .forEach(([weight, quantity]) => {
+        onAddToCart(product, quantity, weight);
+      });
 
-    console.log("Cart contents:", selectedItems);
     onClose();
   };
 
@@ -97,7 +93,7 @@ export function ProductDrawer({ product, isOpen, onClose }) {
               </SheetTitle>
             </SheetHeader>
             <div className="grid gap-2">
-              {product.weights.map((weight, index) => (
+              {product?.weights?.map((weight, index) => (
                 <div
                   key={weight}
                   className={cn(
@@ -153,10 +149,10 @@ export function ProductDrawer({ product, isOpen, onClose }) {
               </div>
               <Button
                 className="w-full bg-blue-800 hover:bg-blue-700 text-white py-6"
-                onClick={handleGoToCart}
+                onClick={handleAddToCart}
                 disabled={Object.values(quantities).every((v) => v === 0)}
               >
-                Go To Cart
+                Add to Cart
               </Button>
             </div>
           )}

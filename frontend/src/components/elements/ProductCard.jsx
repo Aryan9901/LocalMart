@@ -1,19 +1,17 @@
 import { useAuth } from "../../contexts/AuthContext";
 
-export function ProductCard({ key, product, onSelect, onAddToCart }) {
+export function ProductCard({ product, onSelect, onAddToCart }) {
   const { userRole } = useAuth();
-  const addToCartDefault = (e) => {
+
+  const handleAddToCart = (e) => {
     e.stopPropagation();
-    onAddToCart();
+    onAddToCart(product, 1, product.weights[0]);
   };
 
   return (
     <div
-      className=" bg-white cursor-pointer rounded-lg overflow-hidden border"
-      onClick={() => {
-        onSelect(product);
-      }}
-      key={key}
+      className="bg-white cursor-pointer rounded-lg overflow-hidden border"
+      onClick={() => onSelect(product)}
     >
       <div className="relative">
         {product.discount > 0 && (
@@ -29,7 +27,7 @@ export function ProductCard({ key, product, onSelect, onAddToCart }) {
         {userRole === "user" && (
           <div
             className="absolute -bottom-3 select-none cursor-pointer right-1 bg-white px-3 rounded-md border"
-            onClick={(e) => addToCartDefault(e, product, product.weights[0])}
+            onClick={handleAddToCart}
           >
             Add
           </div>

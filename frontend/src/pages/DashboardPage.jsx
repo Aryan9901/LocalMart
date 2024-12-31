@@ -25,20 +25,24 @@ import Header from "../components/elements/Header";
 // Import the products data
 import { products } from "../assets/products";
 import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../hooks/useCart";
 
 export default function Dashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState("vegetables");
   const navigate = useNavigate();
   const { userRole } = useAuth();
+  const { cart, addToCart } = useCart();
 
-  const handleAddToCart = (items) => {
-    setCart((prevCart) => [
-      ...prevCart,
-      ...(Array.isArray(items) ? items : [items]),
-    ]);
+  const handleAddToCart = (product, quantity = 1, weight) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: quantity,
+      weight: weight || product.weights[0],
+    });
   };
 
   const handleProductSelect = (product) => {
@@ -109,7 +113,9 @@ export default function Dashboard() {
                 key={product.id}
                 product={product}
                 onSelect={handleProductSelect}
-                onAddToCart={() => handleAddToCart(product)}
+                onAddToCart={() =>
+                  handleAddToCart(product, 1, product.weights[0])
+                }
               />
             ))}
           </div>
@@ -158,7 +164,7 @@ export default function Dashboard() {
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>cart</p>
+                  <p>Cart</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
