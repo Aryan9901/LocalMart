@@ -105,11 +105,13 @@ const ShoppingCart = () => {
 
   const updateQuantity = (id, change) => {
     setOrderItems(
-      orderItems.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
+      orderItems
+        .map((item) =>
+          item.id === id
+            ? { ...item, quantity: Math.max(0, item.quantity + change) }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
     );
   };
 
@@ -390,6 +392,7 @@ const ShoppingCart = () => {
                   setExpressDelivery(e.target.checked);
                 }}
                 className="mr-2"
+                disabled={selfPickup}
               />
               <label
                 htmlFor="expressDelivery"
@@ -461,9 +464,7 @@ const ShoppingCart = () => {
                   onClick={() =>
                     isSlotAvailable(slot) && setSelectedTimeSlot(slot)
                   }
-                  disabled={
-                    !isSlotAvailable(slot) || expressDelivery || selfPickup
-                  }
+                  disabled={!isSlotAvailable(slot) || expressDelivery}
                 >
                   <Clock className="w-4 h-4 inline-block mr-2" />
                   {displaySlot}
