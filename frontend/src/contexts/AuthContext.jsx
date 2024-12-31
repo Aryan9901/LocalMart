@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
   const verifyOTP = async (otp) => {
     if (otp === "9901") {
       setIsAuthenticated(true);
-      console.log(window.location.host.includes("vendor"));
       let role;
       if (import.meta.env.PROD) {
         role = window.location.host.includes("vendor") ? "vendor" : "user";

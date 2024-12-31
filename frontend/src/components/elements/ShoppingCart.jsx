@@ -39,7 +39,13 @@ const formatTime = (time) => {
 
 const ShoppingCart = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [selectedDay, setSelectedDay] = useState("today");
+  const [selectedDay, setSelectedDay] = useState(() => {
+    if (new Date().getHours() > 18) {
+      return "tomorrow";
+    } else {
+      return "today";
+    }
+  });
   const [orderItems, setOrderItems] = useState([
     { id: 1, name: "Potato (Aloo)", quantity: 1, price: 39, unit: "1 kg" },
     { id: 2, name: "Chilli (Mirchi)", quantity: 1, price: 19, unit: "100 gm" },
@@ -57,6 +63,7 @@ const ShoppingCart = () => {
   const [tempAddress, setTempAddress] = useState({ ...address });
   const [notes, setNotes] = useState("");
   const [expressDelivery, setExpressDelivery] = useState(false);
+  const [selfPickup, setSelfPickup] = useState(false);
 
   const timeSlots = [
     "08:00-10:00",
@@ -142,6 +149,7 @@ const ShoppingCart = () => {
       items: orderItems,
       totals,
       expressDelivery,
+      selfPickup,
       deliveryDay: selectedDay,
       deliveryTime: expressDelivery ? "Within 1 hour" : selectedTimeSlot,
       address,
@@ -372,17 +380,38 @@ const ShoppingCart = () => {
         {/* Time Slot */}
         <div className="p-4 border-b select-none">
           <h2 className="font-semibold mb-2">Delivery Time</h2>
-          <div className="flex items-center mb-4 select-none">
-            <input
-              type="checkbox"
-              id="expressDelivery"
-              checked={expressDelivery}
-              onChange={(e) => setExpressDelivery(e.target.checked)}
-              className="mr-2 "
-            />
-            <label htmlFor="expressDelivery" className="text-sm cursor-pointer">
-              Express Delivery (within 1 hour)
-            </label>
+          <div className="flex items-center justify-between mb-4 select-none">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="expressDelivery"
+                checked={expressDelivery}
+                onChange={(e) => {
+                  setExpressDelivery(e.target.checked);
+                }}
+                className="mr-2"
+              />
+              <label
+                htmlFor="expressDelivery"
+                className="text-sm cursor-pointer"
+              >
+                Express (within 1 hour)
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="selfPickup"
+                checked={selfPickup}
+                onChange={(e) => {
+                  setSelfPickup(e.target.checked);
+                }}
+                className="mr-2"
+              />
+              <label htmlFor="selfPickup" className="text-sm cursor-pointer">
+                Self Pickup
+              </label>
+            </div>
           </div>
 
           <div className="flex mb-4">
@@ -408,6 +437,7 @@ const ShoppingCart = () => {
                   : "bg-gray-200 text-gray-700"
               }`}
               onClick={() => setSelectedDay("tomorrow")}
+              disabled={expressDelivery}
             >
               Tomorrow
             </button>
@@ -431,7 +461,9 @@ const ShoppingCart = () => {
                   onClick={() =>
                     isSlotAvailable(slot) && setSelectedTimeSlot(slot)
                   }
-                  disabled={!isSlotAvailable(slot) || expressDelivery}
+                  disabled={
+                    !isSlotAvailable(slot) || expressDelivery || selfPickup
+                  }
                 >
                   <Clock className="w-4 h-4 inline-block mr-2" />
                   {displaySlot}

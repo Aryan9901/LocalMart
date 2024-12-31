@@ -34,7 +34,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#d8eced] to-white">
+    <div className="min-h-screen w-full sm:border-l sm:border-r bg-gradient-to-b from-[#d8eced] to-white">
       <Card className="w-full border-none shadow-none min-h-screen rounded-none p-0 overflow-hidden">
         <div className="grid min-h-screen items-stretch">
           {/* Left side / Mobile top */}
@@ -76,6 +76,7 @@ export default function LoginPage() {
                     containerClass="w-full relative"
                     buttonClass="!h-12"
                     dropdownClass="text-base bottom-full absolute w-full max-h-[100px] overflow-y-auto  z-50"
+                    onEnterKeyPress={(e) => handleSubmit(e)}
                   />
                 </div>
 
@@ -83,7 +84,7 @@ export default function LoginPage() {
                   type="submit"
                   className="w-full h-12 bg-[#4461F2] hover:bg-[#4461F2]/90 text-white font-medium text-lg transition-all duration-300 ease-in-out focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
-                  Send Mobile OTP
+                  Send OTP
                 </Button>
 
                 <p className="text-sm text-center text-gray-600">

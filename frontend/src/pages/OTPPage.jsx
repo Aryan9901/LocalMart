@@ -66,7 +66,7 @@ export default function OTPPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#d8eced] to-white">
+    <div className="min-h-screen w-full sm:border-l sm:border-r bg-gradient-to-b from-[#d8eced] to-white">
       <Card className="w-full border-none shadow-none min-h-screen rounded-none p-0 overflow-hidden">
         <div className="grid min-h-screen items-stretch">
           {/* Left side / Mobile top */}
