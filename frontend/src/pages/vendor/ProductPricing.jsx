@@ -146,10 +146,8 @@ export default function PricingAvailability() {
   );
 
   useEffect(() => {
-    console.log("Initial product prices:");
-    initialProducts.forEach((product) => {
-      console.log(`${product.name}: Net Price - ₹${product.netPrice}`);
-    });
+    // const fetchProducts = () => {
+    // }
   }, []);
 
   const updatePrice = (id, newValue) => {

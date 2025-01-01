@@ -1,16 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BadgeAlert,
   BadgeCheck,
   BadgeInfo,
-  ChevronLeft,
   History,
-  LogOut,
   Phone,
   ShoppingCart,
   Store,
-  StoreIcon,
-  User,
   UserCircle,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -20,76 +16,46 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "../../contexts/AuthContext";
+import axios from "axios";
 
 const OrderHistory = () => {
-  const orders = [
-    {
-      id: 1,
-      date: "24th Dec, 2024 5:34 PM",
-      items: [
-        "/images/patato.png",
-        "/images/onion.png",
-        "/images/tamato.png",
-        "/images/redchilli.png",
-      ],
-      extraItems: 3,
-      total: 269,
-      status: "pending",
-    },
-    {
-      id: 2,
-      date: "12th Dec, 2024 3:04 PM",
-      items: [
-        "/images/patato.png",
-        "/images/onion.png",
-        "/images/patato.png",
-        "/images/redchilli.png",
-      ],
-      total: 144,
-      status: "completed",
-    },
-    {
-      id: 3,
-      date: "9th Dec, 2024 5:19 PM",
-      items: [
-        "/images/onion.png",
-        "/images/redchilli.png",
-        "/images/tamato.png",
-      ],
-      total: 206,
-      status: "completed",
-    },
-    {
-      id: 4,
-      date: "30th Nov, 2024 6:24 PM",
-      items: ["/images/tamato.png", "/images/onion.png"],
-      total: 249,
-      status: "completed",
-    },
-    {
-      id: 5,
-      date: "19th Nov, 2024 5:28 PM",
-      items: [
-        "/images/tamato.png",
-        "/images/redchilli.png",
-        "/images/onion.png",
-        "/images/tamato.png",
-      ],
-      extraItems: 2,
-      total: 215,
-      status: "cancelled",
-    },
-  ];
-
+  const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user.id;
+
+      if (!userId) {
+        setError("User not found. Please log in.");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/orders/user`,
+          {
+            headers: {
+              "X-User-Id": userId,
+            },
+          }
+        );
+        setOrders(data);
+      } catch (error) {
+        console.error(error);
+        setError("Failed to fetch order history. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
 
   const renderNavItem = (to, icon, label) => (
     <Tooltip>
@@ -104,62 +70,90 @@ const OrderHistory = () => {
     </Tooltip>
   );
 
+  const renderOrderStatus = (status) => {
+    switch (status) {
+      case "Completed":
+        return <BadgeCheck className="w-6 h-6 rounded-full text-green-500" />;
+      case "Pending":
+        return <BadgeInfo className="w-6 h-6 rounded-full text-yellow-500" />;
+      default:
+        return <BadgeAlert className="w-6 h-6 rounded-full text-red-500" />;
+    }
+  };
+
+  const renderProductImage = (product) => (
+    <div
+      key={product.productId}
+      className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100"
+    >
+      {product.productImageUrl ? (
+        <img
+          src={product.productImageUrl}
+          alt={product.productName}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.svg?height=48&width=48";
+            e.currentTarget.alt = "Image not found";
+          }}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-xs bg-gray-200">
+          Image not found
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white px-4 py-4  flex items-center border-b">
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="loader"></div>
+        </div>
+      )}
+      <div className="bg-white px-4 py-4 flex items-center border-b">
         <h1 className="text-lg font-medium flex-1 text-left ml-4 mr-6">
           Order History
         </h1>
         <UserMenu />
       </div>
 
-      {/* Order List */}
       <div className="p-4 pb-16 max-w-sm mx-auto">
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white rounded-lg p-4 shadow-sm cursor-pointer"
-              onClick={() => navigate(`/history/${order.id}`)}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-sm text-gray-500">{order.date}</div>
-                {order.status === "completed" ? (
-                  <BadgeCheck className="w-6 h-6 rounded-full text-green-500" />
-                ) : order?.status === "pending" ? (
-                  <BadgeInfo className="w-6 h-6 rounded-full text-yellow-500" />
-                ) : (
-                  <BadgeAlert className="w-6 h-6 rounded-full text-red-500" />
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  {order.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100"
-                    >
-                      <img
-                        src={item}
-                        alt={`Order item ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                  {order.extraItems && (
-                    <div className="text-sm text-gray-500 ml-1">
-                      +{order.extraItems}
-                    </div>
-                  )}
+        {error ? (
+          <div className="text-red-500 text-center">{error}</div>
+        ) : orders.length === 0 ? (
+          <div className="text-center text-gray-500">No orders found</div>
+        ) : (
+          <div className="space-y-4">
+            {orders?.reverse()?.map((order) => (
+              <div
+                key={order.orderId}
+                className="bg-white rounded-lg p-4 shadow-sm cursor-pointer"
+                onClick={() => navigate(`/history/${order.orderId}`)}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm text-gray-500">
+                    {new Date(order.orderDate).toLocaleString()}
+                  </div>
+                  {renderOrderStatus(order.status)}
                 </div>
-                <div className="font-medium">₹ {order.total}</div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {order.products.slice(0, 4).map(renderProductImage)}
+                    {order.products.length > 4 && (
+                      <div className="text-sm text-gray-500 ml-1">
+                        +{order.products.length - 4}
+                      </div>
+                    )}
+                  </div>
+                  <div className="font-medium">₹ {order.total}</div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
-      {/* bottom nav */}
+
       {localStorage.getItem("userRole") === "user" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
@@ -190,7 +184,17 @@ const OrderHistory = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+                <Phone
+                  onClick={() => {
+                    const user = JSON.parse(
+                      localStorage.getItem("user") || "{}"
+                    );
+                    if (user.contactNo) {
+                      window.open(`tel:${user.contactNo}`);
+                    }
+                  }}
+                  className="h-6 w-6 text-gray-600 cursor-pointer"
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Support</p>
@@ -203,14 +207,12 @@ const OrderHistory = () => {
   );
 };
 
-export default OrderHistory;
-
 const UserMenu = () => {
-  const { logout } = useAuth();
-
   return (
     <Link to="/profile" className="ml-auto mr-2">
-      <UserCircle className="h-7 w-7 " />
+      <UserCircle className="h-7 w-7" />
     </Link>
   );
 };
+
+export default OrderHistory;

@@ -51,15 +51,22 @@ const ShoppingCart = () => {
     }
   });
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+
   const [address, setAddress] = useState({
-    house: "1258, Gali No. 14, Agarkhar",
-    area: "Jamnipali",
-    district: "Korba",
-    state: "Chhattisgarh",
-    pincode: "495450",
-    mobile: "+91 7898411475",
+    addressLineOne: "",
+    addressLineTwo: "",
+    city: "",
+    contactNo: "",
+    country: "",
+    district: "",
+    id: "",
+    pinCode: "",
+    state: "",
+    type: "",
   });
+
   const [tempAddress, setTempAddress] = useState({ ...address });
+  const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState("");
   const [expressDelivery, setExpressDelivery] = useState(false);
   const [selfPickup, setSelfPickup] = useState(false);
@@ -93,6 +100,8 @@ const ShoppingCart = () => {
   };
 
   const calculateTotal = () => {
+    console.log(cart);
+
     const subtotal = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -102,7 +111,7 @@ const ShoppingCart = () => {
       0
     );
     const discount = mrpTotal - subtotal;
-    const platformFees = 200; // Fixed platform fees
+    const platformFees = 0; // Fixed platform fees
     const deliveryCharges = 0; // Delivery is 0 for now
     return {
       subtotal,
@@ -120,8 +129,31 @@ const ShoppingCart = () => {
     setTempAddress((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveAddress = () => {
-    setAddress(tempAddress);
+  const handleSaveAddress = async () => {
+    console.log(tempAddress);
+    const user = JSON.parse(localStorage.getItem("user"));
+    const userId = user.id;
+    tempAddress.type = "home";
+    try {
+      setLoading(true);
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
+        tempAddress,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Id": userId,
+          },
+        }
+      );
+
+      fetchAddress();
+    } catch (error) {
+      toast.error("Some Error occured");
+      console.error(error);
+    } finally {
+      setLoading(true);
+    }
   };
 
   const handleSubmit = async () => {
@@ -132,10 +164,10 @@ const ShoppingCart = () => {
       platformFees: totals.platformFees,
       deliveryCharges: totals.deliveryCharges,
       total: totals.total,
-      contactNo: address.mobile,
-      deliveryAddress: `${address.house}, ${address.area}, ${address.district}, ${address.state}, ${address.pincode}`,
+      contactNo: address.contactNo,
+      deliveryAddress: `${address.addressLineOne}, ${address.addressLineTwo}, ${address.city}, ${address.district}, ${address.state} ${address.country} ${address.pinCode}`,
       status: "Pending",
-      orderDate: new Date().toISOString().split("T")[0],
+      orderDate: new Date(),
       deliveryDate:
         selectedDay === "today"
           ? new Date().toISOString().split("T")[0]
@@ -157,29 +189,35 @@ const ShoppingCart = () => {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-    console.log(orderData);
     const vendorId = VENDOR_ID;
     const userId = user.id;
+    const addressId = address.id;
+
+    console.log(orderData);
+    console.log(vendorId);
+    console.log(userId);
+    console.log(addressId);
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/order`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/rest/subziwale/api/v1/order?addressId=${addressId}`,
         orderData,
         {
           headers: {
             "Content-Type": "application/json",
             "X-Vendor-Id": vendorId,
             "X-User-Id": userId,
-            addressId: "idjfefrgjrlwiwe",
           },
         }
       );
       console.log("Order submitted successfully", response.data);
       toast.success("Order placed successfully!");
       clearCart();
-      navigate("/order-confirmation", {
-        state: { orderId: response.data.orderId },
-      });
+      // navigate("/order-confirmation", {
+      //   state: { orderId: response.data.orderId },
+      // });
     } catch (error) {
       console.error("Error submitting order:", error);
       toast.error("Failed to place order. Please try again.");
@@ -222,8 +260,41 @@ const ShoppingCart = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  const fetchAddress = async () => {
+    try {
+      setLoading(true);
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user.id;
+
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Id": userId,
+          },
+        }
+      );
+
+      setAddress(data[0]);
+      // console.log(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchAddress();
+  }, []);
+
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 min-h-screen ">
+      {loading && (
+        <div className="fixed h-screen left-1/2 -translate-x-1/2 z-50 bg-[#00000046] w-full max-w-sm">
+          <div className="loader"></div>
+        </div>
+      )}
       <div className="max-w-sm mx-auto bg-white shadow-md">
         {/* Header */}
         <div className="flex items-center p-4 border-b sticky top-0 bg-white z-10">
@@ -338,89 +409,117 @@ const ShoppingCart = () => {
               </SheetTrigger>
               <SheetContent
                 side="bottom"
-                className="h-[90vh] sm:h-[90vh] max-w-sm mx-auto rounded-t-[10px] overflow-y-auto"
+                className=" max-w-sm mx-auto rounded-t-[10px] py-2 overflow-y-auto"
               >
                 <SheetHeader>
                   <SheetTitle>Delivery Details</SheetTitle>
                 </SheetHeader>
-                <div className="space-y-4 mt-4 px-2 sm:px-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="relative sm:col-span-2">
+                <div className="space-y-4 mt-2 px-2 sm:px-4">
+                  <div className="grid grid-cols-1  gap-1">
+                    <div className="relative ">
                       <label className="text-sm text-muted-foreground">
                         House No / Flat / Floor / Building :
                       </label>
                       <Input
-                        className="mt-1"
-                        value={tempAddress.house}
+                        className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                        value={tempAddress.addressLineOne}
                         onChange={(e) =>
-                          handleAddressChange("house", e.target.value)
+                          handleAddressChange("addressLineOne", e.target.value)
                         }
                       />
                     </div>
-                    <div className="relative sm:col-span-2">
+                    <div className="relative ">
                       <label className="text-sm text-muted-foreground">
                         Locality / Area / Sector :
                       </label>
                       <Input
-                        className="mt-1"
-                        value={tempAddress.area}
+                        className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                        value={tempAddress.addressLineTwo}
                         onChange={(e) =>
-                          handleAddressChange("area", e.target.value)
+                          handleAddressChange("addressLineTwo", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="relative">
+                        <label className="text-sm text-muted-foreground">
+                          Pin Code :
+                        </label>
+                        <Input
+                          className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                          value={tempAddress.pinCode}
+                          onChange={(e) =>
+                            handleAddressChange("pinCode", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="relative">
+                        <label className="text-sm text-muted-foreground">
+                          City :
+                        </label>
+                        <Input
+                          className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                          value={tempAddress.city}
+                          onChange={(e) =>
+                            handleAddressChange("city", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="relative ">
+                        <label className="text-sm text-muted-foreground">
+                          District :
+                        </label>
+                        <Input
+                          className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                          value={tempAddress.district}
+                          onChange={(e) =>
+                            handleAddressChange("district", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="relative">
+                        <label className="text-sm text-muted-foreground">
+                          State/UT :
+                        </label>
+                        <Input
+                          className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                          value={tempAddress.state}
+                          onChange={(e) =>
+                            handleAddressChange("state", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <label className="text-sm text-muted-foreground">
+                        Country:
+                      </label>
+                      <Input
+                        className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                        value={tempAddress.country}
+                        onChange={(e) =>
+                          handleAddressChange("country", e.target.value)
                         }
                       />
                     </div>
                     <div className="relative">
                       <label className="text-sm text-muted-foreground">
-                        Pin Code :
+                        Contact No :
                       </label>
                       <Input
-                        className="mt-1"
-                        value={tempAddress.pincode}
+                        className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
+                        value={tempAddress.contactNo}
                         onChange={(e) =>
-                          handleAddressChange("pincode", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="relative">
-                      <label className="text-sm text-muted-foreground">
-                        District :
-                      </label>
-                      <Input
-                        className="mt-1"
-                        value={tempAddress.district}
-                        onChange={(e) =>
-                          handleAddressChange("district", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="relative">
-                      <label className="text-sm text-muted-foreground">
-                        State/UT :
-                      </label>
-                      <Input
-                        className="mt-1"
-                        value={tempAddress.state}
-                        onChange={(e) =>
-                          handleAddressChange("state", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="relative">
-                      <label className="text-sm text-muted-foreground">
-                        Mobile :
-                      </label>
-                      <Input
-                        className="mt-1"
-                        value={tempAddress.mobile}
-                        onChange={(e) =>
-                          handleAddressChange("mobile", e.target.value)
+                          handleAddressChange("contactNo", e.target.value)
                         }
                       />
                     </div>
                   </div>
                   <SheetClose className="w-full">
                     <Button
-                      className="w-full h-12 mt-4 text-base bg-blue-500 hover:bg-blue-600 rounded-full"
+                      className="w-full h-12 mt-0 text-base bg-blue-500 hover:bg-blue-600 rounded-full"
                       onClick={handleSaveAddress}
                     >
                       Save Details
@@ -430,14 +529,18 @@ const ShoppingCart = () => {
               </SheetContent>
             </Sheet>
           </div>
-          <div className="flex items-start mb-2">
-            <MapPin className="w-5 h-5 mr-2 mt-1" />
-            <p>{`${address.house}, ${address.area}, ${address.district}, ${address.state}, ${address.pincode}`}</p>
-          </div>
-          <div className="flex items-center">
-            <Phone className="w-5 h-5 mr-2" />
-            <p>{address.mobile}</p>
-          </div>
+          {!loading && (
+            <>
+              <div className="flex items-start mb-2">
+                <MapPin className="w-5 h-5 mr-2 mt-1" />
+                <p>{`${address?.addressLineOne}, ${address?.addressLineTwo}, ${address?.city}, ${address?.district}, ${address?.country} ${address?.pinCode}`}</p>
+              </div>
+              <div className="flex items-center">
+                <Phone className="w-5 h-5 mr-2" />
+                <p>{address?.contactNo}</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Time Slot */}
@@ -582,7 +685,13 @@ const ShoppingCart = () => {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+              <Phone
+                onClick={() => {
+                  const user = JSON.parse(localStorage.getItem("user"));
+                  window.open(`tel:${user.contactNo}`);
+                }}
+                className="h-6 w-6 text-gray-600 cursor-pointer"
+              />
             </TooltipTrigger>
             <TooltipContent>
               <p>Support</p>

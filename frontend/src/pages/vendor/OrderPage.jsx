@@ -320,7 +320,12 @@ export default function OrderPage() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+              <Phone
+                onClick={() => {
+                  window.open(`tel:+919899784200}`);
+                }}
+                className="h-6 w-6 text-gray-600 cursor-pointer"
+              />
             </TooltipTrigger>
             <TooltipContent>
               <p>Support</p>

@@ -194,7 +194,13 @@ export default function Dashboard() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+                  <Phone
+                    onClick={() => {
+                      const user = JSON.parse(localStorage.getItem("user"));
+                      window.open(`tel:${user.contactNo}`);
+                    }}
+                    className="h-6 w-6 text-gray-600 cursor-pointer"
+                  />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Support</p>
@@ -240,7 +246,12 @@ export default function Dashboard() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+                  <Phone
+                    onClick={() => {
+                      window.open(`tel:+919899784200}`);
+                    }}
+                    className="h-6 w-6 text-gray-600 cursor-pointer"
+                  />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Support</p>

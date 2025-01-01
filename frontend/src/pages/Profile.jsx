@@ -158,7 +158,13 @@ export default function Profile() {
             <NavItem href="/history" icon={History} tooltip="My Orders" />
             <NavItem href="/" icon={Store} tooltip="Store" />
             <NavItem href="/cart" icon={ShoppingCart} tooltip="My Cart" />
-            <NavItem href="#" icon={Phone} tooltip="Support" />
+            <NavItem
+              onClick={() => {
+                window.open(`tel:+919899784200}`);
+              }}
+              icon={Phone}
+              tooltip="Support"
+            />
           </nav>
         </TooltipProvider>
       )}
@@ -326,11 +332,11 @@ function ProfileEditForm({ userData, onSubmit, setIsEditing }) {
   );
 }
 
-function NavItem({ href, icon: Icon, tooltip }) {
+function NavItem({ href, icon: Icon, tooltip, onClick }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link to={href} className="p-2">
+        <Link to={href} onClick={onClick} className="p-2">
           <Icon className="h-6 w-6 text-gray-500" />
         </Link>
       </TooltipTrigger>
