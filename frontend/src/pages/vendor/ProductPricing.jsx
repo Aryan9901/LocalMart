@@ -246,7 +246,7 @@ export default function PricingAvailability() {
               className="flex-1 data-[state=active]:bg-[#39c55e] data-[state=active]:text-white rounded-md transition-all duration-200"
             >
               <img
-                src="/images/vegetables.png"
+                src="/Vegetables.png"
                 alt=""
                 className="w-5 h-5 mr-2 inline-block"
               />
@@ -257,7 +257,7 @@ export default function PricingAvailability() {
               className="flex-1 data-[state=active]:bg-[#39c55e] data-[state=active]:text-white rounded-md transition-all duration-200"
             >
               <img
-                src="/images/fruits.png"
+                src="/Fruits.png"
                 alt=""
                 className="w-5 h-5 mr-2 inline-block"
               />
@@ -268,7 +268,7 @@ export default function PricingAvailability() {
               className="flex-1 data-[state=active]:bg-[#39c55e] data-[state=active]:text-white rounded-md transition-all duration-200"
             >
               <img
-                src="/images/dairy.png"
+                src="/Dairy.png"
                 alt=""
                 className="w-5 h-5 mr-2 inline-block"
               />

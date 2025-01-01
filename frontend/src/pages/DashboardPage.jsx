@@ -115,7 +115,7 @@ export default function Dashboard() {
                   className="flex-1 data-[state=active]:bg-[#39c55e] data-[state=active]:text-white rounded-md transition-all duration-200"
                 >
                   <img
-                    src={`/images/${tab}.png`}
+                    src={`/${tab}.png`}
                     alt=""
                     className="w-5 h-5 mr-2 inline-block"
                   />
