@@ -1,16 +1,10 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 
-export function ProductCard({
-  product,
-  onSelect,
-  onAddToCart,
-  setProductImage,
-}) {
+export function ProductCard({ product, onSelect, onAddToCart }) {
   const handleAddToCart = (e) => {
     e.stopPropagation();
     onAddToCart(product, 1, product.productVariants[0]);
-    setProductImage(product.productId, product.productImageUrl);
   };
 
   const discount = (

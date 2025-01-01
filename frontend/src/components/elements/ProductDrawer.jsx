@@ -98,50 +98,56 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        handleQuantityChange(variant.inventoryId, -1)
-                      }
-                      disabled={quantities[variant.inventoryId] <= 0}
-                      className="h-7 w-7 p-0"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
+                    {localStorage.getItem("userRole") === "user" && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          handleQuantityChange(variant.inventoryId, -1)
+                        }
+                        disabled={quantities[variant.inventoryId] <= 0}
+                        className="h-7 w-7 p-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
                     <span className="w-8 text-center">
                       {quantities[variant.inventoryId] || 0}
                     </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        handleQuantityChange(variant.inventoryId, 1)
-                      }
-                      className="h-7 w-7 p-0"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    {localStorage.getItem("userRole") === "user" && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          handleQuantityChange(variant.inventoryId, 1)
+                        }
+                        className="h-7 w-7 p-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="border-t bg-white px-4 py-3 mt-auto">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-medium">Total:</span>
-              <span className="font-bold text-lg">
-                ₹{calculateTotalPrice()}
-              </span>
+          {localStorage.getItem("userRole") === "user" && (
+            <div className="border-t bg-white px-4 py-3 mt-auto">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium">Total:</span>
+                <span className="font-bold text-lg">
+                  ₹{calculateTotalPrice()}
+                </span>
+              </div>
+              <Button
+                className="w-full bg-blue-700 hover:bg-blue-700 text-white py-4 cursor-pointer"
+                onClick={handleAddToCart}
+                disabled={Object.values(quantities).every((v) => v === 0)}
+              >
+                Add to Cart
+              </Button>
             </div>
-            <Button
-              className="w-full bg-blue-700 hover:bg-blue-700 text-white py-4 cursor-pointer"
-              onClick={handleAddToCart}
-              disabled={Object.values(quantities).every((v) => v === 0)}
-            >
-              Add to Cart
-            </Button>
-          </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

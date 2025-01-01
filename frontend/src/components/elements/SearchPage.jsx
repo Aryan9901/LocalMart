@@ -11,12 +11,12 @@ import axios from "axios";
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [allProducts, setAllProducts] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { cart, addToCart, setProductImage } = useCart();
+  const { cart, addToCart } = useCart();
 
   useEffect(() => {
     fetchAllProducts();
@@ -51,12 +51,12 @@ export default function SearchPage() {
 
   const filterProducts = () => {
     if (searchTerm.trim() === "") {
-      setSearchResults([]);
+      setFilteredProducts(allProducts);
     } else {
-      const filteredProducts = allProducts.filter((product) =>
+      const filtered = allProducts.filter((product) =>
         product.productName.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setSearchResults(filteredProducts);
+      setFilteredProducts(filtered);
     }
   };
 
@@ -115,7 +115,7 @@ export default function SearchPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
-              {searchResults.map((product) => (
+              {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.productId}
                   product={product}
@@ -125,7 +125,7 @@ export default function SearchPage() {
               ))}
             </div>
           )}
-          {searchTerm && searchResults.length === 0 && !loading && (
+          {!loading && filteredProducts.length === 0 && (
             <div className="text-center mt-8">
               <p className="text-gray-500">No products found</p>
               <p className="text-sm text-gray-400 mt-2">

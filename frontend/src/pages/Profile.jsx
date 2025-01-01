@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -25,32 +25,71 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-// Mock user data - replace with actual data fetching
-const userData = {
-  name: "John Doe",
-  mobile: "9876543210",
-  houseNo: "A-123",
-  apartmentName: "Green Valley Apartments",
-  plotNo: "45",
-  sector: "Sector 15",
-  city: "Mumbai",
-  state: "Maharashtra",
-  pinCode: "400001",
+const getUserData = () => {
+  const storedData = localStorage.getItem("user");
+  if (storedData) {
+    try {
+      const parsedData = JSON.parse(storedData);
+      return {
+        id: parsedData.id,
+        name: parsedData.name,
+        emailId: parsedData.emailId,
+        contactNo: parsedData.contactNo,
+        userType: parsedData.userType,
+        house: "",
+        area: "",
+        pincode: "",
+        district: "",
+        state: "",
+      };
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+    }
+  }
+  return {
+    id: "",
+    name: "",
+    emailId: "",
+    contactNo: "",
+    userType: "",
+    house: "",
+    area: "",
+    pincode: "",
+    district: "",
+    state: "",
+  };
 };
 
 export default function Profile() {
+  const [userData, setUserData] = useState(getUserData());
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const storedData = localStorage.getItem("userAttachment");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        setUserData((prevData) => ({
+          ...prevData,
+          ...parsedData,
+        }));
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
+
   function onSubmit(values) {
+    setUserData(values);
+    localStorage.setItem("userAttachment", JSON.stringify(values));
     toast({
       title: "Profile Updated",
       description: "Your profile has been successfully updated.",
     });
     setIsEditing(false);
-    console.log(values);
   }
 
   function handleLogout() {
@@ -99,7 +138,7 @@ export default function Profile() {
         </Card>
       </main>
 
-      {localStorage.getItem("userRole") === "vendor" && (
+      {userData.userType === "vendor" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
             <NavItem href="/vendor" icon={ShoppingBag} tooltip="My Orders" />
@@ -113,7 +152,7 @@ export default function Profile() {
           </nav>
         </TooltipProvider>
       )}
-      {localStorage.getItem("userRole") === "user" && (
+      {userData.userType === "user" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
             <NavItem href="/history" icon={History} tooltip="My Orders" />
@@ -127,21 +166,34 @@ export default function Profile() {
   );
 }
 
-// Profile View Component
 function ProfileView({ userData, setIsEditing, handleLogout }) {
+  const addressFields = [
+    { key: "house", label: "House No / Flat / Floor / Building" },
+    { key: "area", label: "Locality / Area / Sector" },
+    { key: "pincode", label: "Pin Code" },
+    { key: "district", label: "District" },
+    { key: "state", label: "State/UT" },
+  ];
+
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {Object.entries(userData).map(([key, value]) => (
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-500">Name</p>
+          <p className="text-base">{userData.name}</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-500">Email</p>
+          <p className="text-base">{userData.emailId}</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-500">Contact No</p>
+          <p className="text-base">{userData.contactNo}</p>
+        </div>
+        {addressFields.map(({ key, label }) => (
           <div key={key} className="space-y-1">
-            <p className="text-sm font-medium text-gray-500">
-              {key.charAt(0).toUpperCase() +
-                key
-                  .slice(1)
-                  .replace(/([A-Z])/g, " $1")
-                  .trim()}
-            </p>
-            <p className="text-base">{value}</p>
+            <p className="text-sm font-medium text-gray-500">{label}</p>
+            <p className="text-base">{userData[key] || "Not provided"}</p>
           </div>
         ))}
       </div>
@@ -163,7 +215,6 @@ function ProfileView({ userData, setIsEditing, handleLogout }) {
   );
 }
 
-// Profile Edit Form Component
 function ProfileEditForm({ userData, onSubmit, setIsEditing }) {
   const [formData, setFormData] = useState(userData);
 
@@ -180,34 +231,86 @@ function ProfileEditForm({ userData, onSubmit, setIsEditing }) {
     onSubmit(formData);
   };
 
+  const addressFields = [
+    { key: "house", label: "House No / Flat / Floor / Building" },
+    { key: "area", label: "Locality / Area / Sector" },
+    { key: "pincode", label: "Pin Code" },
+    { key: "district", label: "District" },
+    { key: "state", label: "State/UT" },
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {Object.entries(userData).map(([field, value]) => (
-        <div key={field} className="space-y-1">
+      <div className="space-y-1">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Name
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
+        />
+      </div>
+      <div className="space-y-1">
+        <label
+          htmlFor="emailId"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Email
+        </label>
+        <input
+          type="email"
+          id="emailId"
+          name="emailId"
+          value={formData.emailId}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
+        />
+      </div>
+      <div className="space-y-1">
+        <label
+          htmlFor="contactNo"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Contact No
+        </label>
+        <input
+          type="tel"
+          id="contactNo"
+          name="contactNo"
+          value={formData.contactNo}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
+        />
+      </div>
+      {addressFields.map(({ key, label }) => (
+        <div key={key} className="space-y-1">
           <label
-            htmlFor={field}
+            htmlFor={key}
             className="block text-sm font-medium text-gray-700"
           >
-            {field.charAt(0).toUpperCase() +
-              field
-                .slice(1)
-                .replace(/([A-Z])/g, " $1")
-                .trim()}
+            {label}
           </label>
           <input
             type="text"
-            id={field}
-            name={field}
-            value={formData[field]}
+            id={key}
+            name={key}
+            value={formData[key]}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
           />
         </div>
       ))}
       <div className="flex gap-4">
         <button
           type="submit"
-          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none"
         >
           Save Changes
         </button>
@@ -223,7 +326,6 @@ function ProfileEditForm({ userData, onSubmit, setIsEditing }) {
   );
 }
 
-// Navigation Bar Component
 function NavItem({ href, icon: Icon, tooltip }) {
   return (
     <Tooltip>

@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
+import { VENDOR_ID } from "../../constant/constant";
 
 const formatTime = (time) => {
   const [hours, minutes] = time.split(":");
@@ -49,7 +50,7 @@ const ShoppingCart = () => {
       return "today";
     }
   });
-  const { cart, updateQuantity, removeFromCart } = useCart();
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [address, setAddress] = useState({
     house: "1258, Gali No. 14, Agarkhar",
     area: "Jamnipali",
@@ -62,6 +63,7 @@ const ShoppingCart = () => {
   const [notes, setNotes] = useState("");
   const [expressDelivery, setExpressDelivery] = useState(false);
   const [selfPickup, setSelfPickup] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const timeSlots = [
@@ -122,25 +124,67 @@ const ShoppingCart = () => {
     setAddress(tempAddress);
   };
 
-  const handleSubmit = () => {
-    console.log("Order submitted", {
-      items: cart,
-      totals,
+  const handleSubmit = async () => {
+    // setIsSubmitting(true);
+    const orderData = {
+      mrp: totals.mrpTotal,
+      discount: totals.discount,
+      platformFees: totals.platformFees,
+      deliveryCharges: totals.deliveryCharges,
+      total: totals.total,
+      contactNo: address.mobile,
+      deliveryAddress: `${address.house}, ${address.area}, ${address.district}, ${address.state}, ${address.pincode}`,
+      status: "Pending",
+      orderDate: new Date().toISOString().split("T")[0],
+      deliveryDate:
+        selectedDay === "today"
+          ? new Date().toISOString().split("T")[0]
+          : new Date(Date.now() + 86400000).toISOString().split("T")[0],
+      timeSlot: expressDelivery ? "Within 1 hour" : selectedTimeSlot,
       expressDelivery,
       selfPickup,
-      deliveryDay: selectedDay,
-      deliveryTime: expressDelivery ? "Within 1 hour" : selectedTimeSlot,
-      address,
-      notes,
-    });
-  };
+      note: notes,
+      items: cart.map((item) => ({
+        productId: item.id,
+        inventoryId: item.variant.inventoryId,
+        productName: item.name,
+        quantity: item.quantity,
+        unit: item.variant.unit,
+        mrp: item.mrp,
+        netPrice: item.price,
+      })),
+    };
 
-  const postOrder = async (order) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    console.log(orderData);
+    const vendorId = VENDOR_ID;
+    const userId = user.id;
+
     try {
-      // const {data} = await axios
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/order`,
+        orderData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Vendor-Id": vendorId,
+            "X-User-Id": userId,
+            addressId: "idjfefrgjrlwiwe",
+          },
+        }
+      );
+      console.log("Order submitted successfully", response.data);
+      toast.success("Order placed successfully!");
+      clearCart();
+      navigate("/order-confirmation", {
+        state: { orderId: response.data.orderId },
+      });
     } catch (error) {
-      toast.error("Error creating order");
-      console.error(error);
+      console.error("Error submitting order:", error);
+      toast.error("Failed to place order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -161,7 +205,7 @@ const ShoppingCart = () => {
   useEffect(() => {
     const availableSlots = timeSlots.filter((slot) => {
       if (selectedDay === "tomorrow") {
-        return true; // All slots are available for tomorrow
+        return true;
       } else {
         return isSlotAvailable(slot);
       }
@@ -174,9 +218,9 @@ const ShoppingCart = () => {
     }
   }, [selectedDay]);
 
-  // useEffect(() => {
-  //   console.log(cart);
-  // }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -507,9 +551,12 @@ const ShoppingCart = () => {
         <div className="px-4 pt-2 py-4 border-t mb-12 bg-white">
           <button
             onClick={handleSubmit}
-            className="w-full py-3 bg-blue-500 text-white rounded font-semibold hover:bg-blue-600 transition-colors"
+            disabled={isSubmitting}
+            className={`w-full py-3 bg-blue-500 text-white rounded font-semibold hover:bg-blue-600 transition-colors ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Confirm
+            {isSubmitting ? "Placing Order..." : "Confirm"}
           </button>
         </div>
       </div>

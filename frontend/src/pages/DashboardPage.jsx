@@ -164,43 +164,91 @@ export default function Dashboard() {
           </div>
         )}
 
-        <TooltipProvider>
-          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
-            {renderNavItem(
-              "/history",
-              <History className="h-6 w-6 text-gray-500" />,
-              "My Orders"
-            )}
-            {renderNavItem(
-              "/",
-              <Store className="h-6 w-6 text-black" />,
-              "My Store"
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link to="/cart" className="relative">
-                  <ShoppingCart className="h-6 w-6 text-gray-600" />
-                  {cart.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#39c55e] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {cart.length}
-                    </span>
-                  )}
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Cart</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Support</p>
-              </TooltipContent>
-            </Tooltip>
-          </nav>
-        </TooltipProvider>
+        {localStorage.getItem("userRole") === "user" && (
+          <TooltipProvider>
+            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+              {renderNavItem(
+                "/history",
+                <History className="h-6 w-6 text-gray-500" />,
+                "My Orders"
+              )}
+              {renderNavItem(
+                "/",
+                <Store className="h-6 w-6 text-black" />,
+                "My Store"
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/cart" className="relative">
+                    <ShoppingCart className="h-6 w-6 text-gray-600" />
+                    {cart.length > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-[#39c55e] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {cart.length}
+                      </span>
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Cart</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Support</p>
+                </TooltipContent>
+              </Tooltip>
+            </nav>
+          </TooltipProvider>
+        )}
+        {localStorage.getItem("userRole") === "vendor" && (
+          <TooltipProvider>
+            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/vendor" className="p-2">
+                    <ShoppingBag className="h-6 w-6 text-gray-500" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>My Orders</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/vendor/store" className="p-2">
+                    <Store className="h-6 w-6 text-black" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>My Store</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/vendor/product/pricing" className="p-2">
+                    <Package className="h-6 w-6 text-gray-500" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>My Products</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Support</p>
+                </TooltipContent>
+              </Tooltip>
+            </nav>
+          </TooltipProvider>
+        )}
       </div>
     </div>
   );
