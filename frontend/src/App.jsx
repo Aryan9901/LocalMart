@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
-import OTPPage from "./pages/OTPPage";
 import Dashboard from "./pages/DashboardPage";
 import ShoppingCart from "./components/elements/ShoppingCart";
 import OrderHistory from "./components/elements/OrderHistory";
@@ -22,11 +21,10 @@ import Profile from "./pages/Profile";
 
 // Protected Route Component for Vendors
 const VendorRoute = () => {
-  const { isAuthenticated, userRole } = useAuth();
-  if (!isAuthenticated) {
+  if (!localStorage.getItem("isAuthenticated")) {
     return <Navigate to="/login" replace />;
   }
-  if (userRole !== "vendor") {
+  if (localStorage.getItem("userRole") !== "vendor") {
     return <Navigate to="/" replace />;
   }
   return <Outlet />;
@@ -34,11 +32,10 @@ const VendorRoute = () => {
 
 // Protected Route Component for Other Users
 const UserRoute = () => {
-  const { isAuthenticated, userRole } = useAuth();
-  if (!isAuthenticated) {
+  if (!localStorage.getItem("isAuthenticated")) {
     return <Navigate to="/login" replace />;
   }
-  if (userRole === "vendor") {
+  if (localStorage.getItem("userRole") === "vendor") {
     return <Navigate to="/vendor" replace />;
   }
   return <Outlet />;
@@ -51,7 +48,6 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/verify-otp" element={<OTPPage />} />
             <Route path="*" element={<PageNotFound />} />
 
             {/* Vendor Routes */}

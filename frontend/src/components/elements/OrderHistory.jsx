@@ -87,7 +87,7 @@ const OrderHistory = () => {
       status: "cancelled",
     },
   ];
-  const { userRole } = useAuth();
+
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
 
@@ -160,7 +160,7 @@ const OrderHistory = () => {
         </div>
       </div>
       {/* bottom nav */}
-      {userRole === "user" && (
+      {localStorage.getItem("userRole") === "user" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
             {renderNavItem(

@@ -27,7 +27,7 @@ export default function Header({ cart }) {
           <img src="/images/logo.jpg" alt="Logo" className="h-8 w-8" />
           <h1 className="font-bold text-lg text-black">Subziwale</h1>
         </div>
-        {userRole === "vendor" ? (
+        {localStorage.getItem("userRole") === "vendor" ? (
           <VendorMenu />
         ) : (
           <>

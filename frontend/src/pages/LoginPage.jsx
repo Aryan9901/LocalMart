@@ -7,29 +7,24 @@ import "react-phone-input-2/lib/style.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-<style jsx global>{`
-  .react-tel-input .country-list {
-    max-height: 60px;
-    overflow-y: auto;
-    margin-top: 0;
-  }
-`}</style>;
-
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
-  const { sendOTP } = useAuth();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (phone && phone.replace("91", "").length === 10) {
-      let isOtpSent = sendOTP(phone);
-      toast.success("✅ Otp Sent!");
-      if (isOtpSent) {
-        navigate("/verify-otp");
+      const userRole = await login(phone);
+      if (userRole) {
+        if (userRole === "vendor") {
+          navigate("/vendor");
+        } else {
+          navigate("/");
+        }
       }
     } else {
-      toast.error("‼️ Something went wrong!");
+      toast.error("Invalid phone number!");
     }
   };
 
@@ -76,7 +71,7 @@ export default function LoginPage() {
                     containerClass="w-full relative"
                     buttonClass="!h-12"
                     dropdownClass="text-base bottom-full absolute w-full max-h-[100px] overflow-y-auto  z-50"
-                    onEnterKeyPress={(e) => handleSubmit(e)}
+                    onEnterKeyPress={handleSubmit}
                   />
                 </div>
 
@@ -84,18 +79,18 @@ export default function LoginPage() {
                   type="submit"
                   className="w-full h-12 bg-[#4461F2] hover:bg-[#4461F2]/90 text-white font-medium text-lg transition-all duration-300 ease-in-out focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
-                  Send OTP
+                  Log In
                 </Button>
 
                 <p className="text-sm text-center text-gray-600">
-                  By proceeding, I accept the
+                  By proceeding, I accept the{" "}
                   <a
                     href="#"
                     className="text-[#4461F2] hover:underline font-medium"
                   >
                     Terms & Conditions
-                  </a>
-                  and
+                  </a>{" "}
+                  and{" "}
                   <a
                     href="#"
                     className="text-[#4461F2] hover:underline font-medium"

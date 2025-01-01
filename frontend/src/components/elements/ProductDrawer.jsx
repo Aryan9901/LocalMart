@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -6,62 +6,52 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
 
 export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
   const [quantities, setQuantities] = useState({});
-  const [drawerHeight, setDrawerHeight] = useState("100vh");
-  const { userRole } = useAuth();
-
-  useEffect(() => {
-    const updateHeight = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty("--vh", `${vh}px`);
-      setDrawerHeight(`${window.innerHeight}px`);
-    };
-
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, []);
 
   useEffect(() => {
     if (product) {
-      const initialQuantities = product.weights.reduce((acc, weight) => {
-        acc[weight] = 0;
-        return acc;
-      }, {});
+      const initialQuantities = product.productVariants.reduce(
+        (acc, variant) => {
+          acc[variant.inventoryId] = 0;
+          return acc;
+        },
+        {}
+      );
       setQuantities(initialQuantities);
     }
   }, [product]);
 
-  const handleQuantityChange = (weight, change) => {
-    const newQuantity = (quantities[weight] || 0) + change;
-    if (newQuantity >= 0) {
-      setQuantities((prev) => ({
-        ...prev,
-        [weight]: newQuantity,
-      }));
-    }
+  const handleQuantityChange = (inventoryId, change) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [inventoryId]: Math.max(0, (prev[inventoryId] || 0) + change),
+    }));
   };
 
   const calculateTotalPrice = () => {
     if (!product) return 0;
-    return Object.entries(quantities).reduce((total, [weight, quantity]) => {
-      return total + product.price * quantity;
-    }, 0);
+    return Object.entries(quantities).reduce(
+      (total, [inventoryId, quantity]) => {
+        const variant = product.productVariants.find(
+          (v) => v.inventoryId === inventoryId
+        );
+        return total + (variant?.netPrice || product.netPrice) * quantity;
+      },
+      0
+    );
   };
 
   const handleAddToCart = () => {
     if (!product) return;
-    Object.entries(quantities)
-      .filter(([weight, quantity]) => quantity > 0)
-      .forEach(([weight, quantity]) => {
-        onAddToCart(product, quantity, weight);
-      });
-
+    product.productVariants.forEach((variant) => {
+      const quantity = quantities[variant.inventoryId];
+      if (quantity > 0) {
+        onAddToCart(product, quantity, variant);
+      }
+    });
     onClose();
   };
 
@@ -71,41 +61,40 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
         side="bottom"
-        className={`rounded-t-2xl p-0 ${drawerHeight} max-w-sm mx-auto`}
+        className="max-w-sm mx-auto py-0 px-0 rounded-t-3xl"
       >
         <div className="flex flex-col h-full">
           <div className="relative w-full h-40 rounded-t-2xl overflow-hidden">
             <img
-              src={product.image}
-              alt={product.name}
+              src={product.productImageUrl}
+              alt={product.productName}
               className="w-full h-full object-cover"
             />
-            {product.discount > 0 && (
+            {product.mrp > product.netPrice && (
               <div className="absolute top-2 left-2 text-white bg-green-600 text-xs px-2 py-1 rounded">
-                {product.discount}% OFF
+                {(
+                  ((product.mrp - product.netPrice) / product.mrp) *
+                  100
+                ).toFixed(0)}
+                % OFF
               </div>
             )}
           </div>
           <div className="flex-grow overflow-y-auto px-4 py-2">
             <SheetHeader className="text-left mb-2">
-              <SheetTitle className="text-xl font-bold text-black">
-                {product.name}
+              <SheetTitle className="text-xl font-bold">
+                {product.productName}
               </SheetTitle>
             </SheetHeader>
             <div className="grid gap-2">
-              {product?.weights?.map((weight, index) => (
+              {product.productVariants.map((variant) => (
                 <div
-                  key={weight}
-                  className={cn(
-                    "flex items-center justify-between border rounded-lg p-2",
-                    quantities[weight] > 0
-                      ? "border-blue-500 bg-white"
-                      : "border-blue-100"
-                  )}
+                  key={variant.inventoryId}
+                  className="flex items-center justify-between border rounded-lg p-2"
                 >
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium leading-none">
-                      {weight}
+                    <span className="text-sm font-medium">
+                      {variant.variant} {variant.unit}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -113,23 +102,22 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
                       variant="outline"
                       size="icon"
                       onClick={() =>
-                        userRole === "user" && handleQuantityChange(weight, -1)
+                        handleQuantityChange(variant.inventoryId, -1)
                       }
-                      disabled={userRole !== "user" || quantities[weight] <= 0}
+                      disabled={quantities[variant.inventoryId] <= 0}
                       className="h-7 w-7 p-0"
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
-                    <span className="w-8 text-center text-black">
-                      {quantities[weight] || 0}
+                    <span className="w-8 text-center">
+                      {quantities[variant.inventoryId] || 0}
                     </span>
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() =>
-                        userRole === "user" && handleQuantityChange(weight, 1)
+                        handleQuantityChange(variant.inventoryId, 1)
                       }
-                      disabled={userRole !== "user"}
                       className="h-7 w-7 p-0"
                     >
                       <Plus className="h-4 w-4" />
@@ -139,23 +127,21 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
               ))}
             </div>
           </div>
-          {userRole === "user" && (
-            <div className="border-t bg-white px-4 py-3 mt-auto">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-medium text-black">Total:</span>
-                <span className="font-bold text-lg text-black">
-                  ₹{calculateTotalPrice()}
-                </span>
-              </div>
-              <Button
-                className="w-full bg-blue-800 hover:bg-blue-700 text-white py-6"
-                onClick={handleAddToCart}
-                disabled={Object.values(quantities).every((v) => v === 0)}
-              >
-                Add to Cart
-              </Button>
+          <div className="border-t bg-white px-4 py-3 mt-auto">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-medium">Total:</span>
+              <span className="font-bold text-lg">
+                ₹{calculateTotalPrice()}
+              </span>
             </div>
-          )}
+            <Button
+              className="w-full bg-blue-700 hover:bg-blue-700 text-white py-4 cursor-pointer"
+              onClick={handleAddToCart}
+              disabled={Object.values(quantities).every((v) => v === 0)}
+            >
+              Add to Cart
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

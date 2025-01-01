@@ -1,62 +1,79 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { products } from "../../assets/products";
-import { ProductCard } from "./ProductCard";
-import { ProductDrawer } from "./ProductDrawer";
+import { ProductCard } from "@/components/elements/ProductCard";
+import { ProductDrawer } from "@/components/elements/ProductDrawer";
+import { useCart } from "@/hooks/useCart";
+import axios from "axios";
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [allProducts, setAllProducts] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [cart, setCart] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  const allProducts = [
-    ...products.vegetables,
-    ...products.fruits,
-    ...products.dairy,
-  ];
+  const { cart, addToCart, setProductImage } = useCart();
 
   useEffect(() => {
-    if (searchTerm) {
-      const results = allProducts.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      // Remove duplicates by using Set and map
-      const uniqueResults = Array.from(new Set(results.map((r) => r.id))).map(
-        (id) => results.find((r) => r.id === id)
-      );
-      setSearchResults(uniqueResults);
-    } else {
-      setSearchResults(allProducts);
+    fetchAllProducts();
+  }, []);
+
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      filterProducts();
     }
-  }, [searchTerm]);
+  }, [searchTerm, allProducts]);
+
+  const fetchAllProducts = async () => {
+    try {
+      setLoading(true);
+      const categories = ["Vegetables", "Fruits", "Dairy"];
+      const productPromises = categories.map((category) =>
+        axios.get(
+          `${
+            import.meta.env.VITE_API_URL
+          }/rest/subziwale/api/v1/products?category=${category}`
+        )
+      );
+      const responses = await Promise.all(productPromises);
+      const products = responses.flatMap((response) => response.data);
+      setAllProducts(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterProducts = () => {
+    if (searchTerm.trim() === "") {
+      setSearchResults([]);
+    } else {
+      const filteredProducts = allProducts.filter((product) =>
+        product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setSearchResults(filteredProducts);
+    }
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
+    filterProducts();
   };
 
-  const handleAddToCart = (
-    product,
-    quantity = 1,
-    weight = product.defaultWeight
-  ) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find(
-        (item) => item.id === product.id && item.weight === weight
-      );
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === product.id && item.weight === weight
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prevCart, { ...product, quantity, weight }];
+  const handleAddToCart = (product, quantity, variant) => {
+    addToCart({
+      id: product.productId,
+      name: product.productName,
+      image: product.productImageUrl,
+      mrp: variant.mrp || product.mrp,
+      price: variant.netPrice || product.netPrice,
+      quantity: quantity,
+      variant: variant,
     });
   };
 
@@ -68,7 +85,7 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen bg-gray-50 sm:border-l sm:border-r">
       <div className="max-w-sm mx-auto">
-        <header className="flex items-center gap-4 bg-white border-b px-4 py-3">
+        <header className="flex items-center gap-4 bg-white border-b px-4 py-3 sticky top-0 z-10">
           <button
             className="p-1"
             onClick={() => navigate(-1)}
@@ -91,18 +108,24 @@ export default function SearchPage() {
           </form>
         </header>
 
-        <main className="container mx-auto px-2 py-3">
-          <div className="grid grid-cols-2 gap-2">
-            {searchResults.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelect={() => handleProductSelect(product)}
-                onAddToCart={() => handleAddToCart(product)}
-              />
-            ))}
-          </div>
-          {searchTerm && searchResults.length === 0 && (
+        <main className="container mx-auto px-4 py-4 mb-20">
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="loader"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {searchResults.map((product) => (
+                <ProductCard
+                  key={product.productId}
+                  product={product}
+                  onSelect={handleProductSelect}
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+          )}
+          {searchTerm && searchResults.length === 0 && !loading && (
             <div className="text-center mt-8">
               <p className="text-gray-500">No products found</p>
               <p className="text-sm text-gray-400 mt-2">
@@ -112,12 +135,13 @@ export default function SearchPage() {
           )}
         </main>
 
-        {cart.length > 0 && (
-          <div className="fixed max-w-sm mx-auto bottom-4 left-4 right-4">
+        {localStorage.getItem("userRole") === "user" && cart.length > 0 && (
+          <div className="fixed max-w-sm mx-auto bottom-5 left-4 right-4">
             <Button
-              className="w-full bg-[#39c55e] hover:bg-[#2ea34d] text-white"
+              className="w-10/12 mx-auto flex bg-[#39c55e] hover:bg-[#2ea34d] text-white shadow-lg transition-all duration-200"
               onClick={() => navigate("/cart")}
             >
+              <ShoppingCart className="mr-2 h-5 w-5" />
               {cart.length} {cart.length === 1 ? "item" : "items"} | Go to Cart
             </Button>
           </div>

@@ -13,7 +13,9 @@ export function useCart() {
   const addToCart = (item) => {
     setCart((prevCart) => {
       const existingItemIndex = prevCart.findIndex(
-        (cartItem) => cartItem.id === item.id && cartItem.weight === item.weight
+        (cartItem) =>
+          cartItem.id === item.id &&
+          cartItem.variant.inventoryId === item.variant.inventoryId
       );
       if (existingItemIndex > -1) {
         const newCart = [...prevCart];
@@ -24,17 +26,20 @@ export function useCart() {
     });
   };
 
-  const removeFromCart = (itemId, weight) => {
+  const removeFromCart = (itemId, variantId) => {
     setCart((prevCart) =>
-      prevCart.filter((item) => !(item.id === itemId && item.weight === weight))
+      prevCart.filter(
+        (item) =>
+          !(item.id === itemId && item.variant.inventoryId === variantId)
+      )
     );
   };
 
-  const updateQuantity = (itemId, weight, change) => {
+  const updateQuantity = (itemId, variantId, change) => {
     setCart((prevCart) =>
       prevCart
         .map((item) =>
-          item.id === itemId && item.weight === weight
+          item.id === itemId && item.variant.inventoryId === variantId
             ? { ...item, quantity: Math.max(0, item.quantity + change) }
             : item
         )

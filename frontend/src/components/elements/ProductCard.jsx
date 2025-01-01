@@ -1,12 +1,22 @@
-import { useAuth } from "../../contexts/AuthContext";
+import React from "react";
+import { Button } from "@/components/ui/button";
 
-export function ProductCard({ product, onSelect, onAddToCart }) {
-  const { userRole } = useAuth();
-
+export function ProductCard({
+  product,
+  onSelect,
+  onAddToCart,
+  setProductImage,
+}) {
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    onAddToCart(product, 1, product.weights[0]);
+    onAddToCart(product, 1, product.productVariants[0]);
+    setProductImage(product.productId, product.productImageUrl);
   };
+
+  const discount = (
+    ((product.mrp - product.netPrice) / product.mrp) *
+    100
+  ).toFixed(0);
 
   return (
     <div
@@ -14,38 +24,41 @@ export function ProductCard({ product, onSelect, onAddToCart }) {
       onClick={() => onSelect(product)}
     >
       <div className="relative">
-        {product.discount > 0 && (
+        {Number(discount) > 0 && (
           <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
-            {product.discount}% OFF
+            {discount}% OFF
           </div>
         )}
         <img
-          src={product.image}
-          alt={product.name}
+          src={product.productImageUrl}
+          alt={product.productName}
           className="w-full h-32 object-cover"
         />
-        {userRole === "user" && (
-          <div
-            className="absolute -bottom-3 select-none cursor-pointer right-1 bg-white px-3 rounded-md border"
+        {localStorage.getItem("userRole") === "user" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="absolute -bottom-3 right-2"
             onClick={handleAddToCart}
           >
             Add
-          </div>
+          </Button>
         )}
       </div>
-      <div className="py-3 px-1 space-y-2">
-        <h3 className="font-medium text-sm">{product.name}</h3>
+      <div className="p-3 space-y-2">
+        <h3 className="font-medium text-sm">{product.productName}</h3>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <span className="text-sm font-bold">₹{product.price}</span>
-            {product.originalPrice && (
+            <span className="text-sm font-bold">₹{product.netPrice}</span>
+            {product.mrp !== product.netPrice && (
               <span className="text-xs text-gray-500 line-through">
-                ₹{product.originalPrice}
+                ₹{product.mrp}
               </span>
             )}
           </div>
-          <div className="px-2 text-sm py-1 border rounded-md">
-            {product.weights[0]}
+          <div className="text-sm border rounded-md px-2 py-1">
+            {product.productVariants[0].variant || 1}{" "}
+            {product.productVariants[0].unit}
           </div>
         </div>
       </div>

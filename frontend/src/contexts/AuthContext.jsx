@@ -1,53 +1,66 @@
 import { createContext, useContext, useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import jwtEncode from "jwt-encode";
 
 const AuthContext = createContext({});
 
-export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+export function generateToken(user) {
+  const secret = "your-secret-key";
+  const expirationTime = Math.floor(Date.now() / 1000) + 3600;
 
-  // Simulate OTP sending
-  const sendOTP = async (phone) => {
-    // In a real app, you would make an API call here
-    setPhoneNumber(phone);
-    setOtpSent(true);
-    return true;
+  const payload = {
+    ...user,
+    exp: expirationTime,
   };
 
-  // Simulate OTP verification
-  const verifyOTP = async (otp) => {
-    if (otp === "9901") {
+  return jwtEncode(payload, secret);
+}
+
+export function AuthProvider({ children }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+
+  const login = async (phone) => {
+    try {
+      const { data } = await axios.get(
+        `${
+          import.meta.env.VITE_API_URL
+        }/rest/subziwale/api/v1/user?mobileNo=%2B${phone}`
+      );
+      console.log(data);
+      const token = generateToken(data);
       setIsAuthenticated(true);
-      let role;
-      if (import.meta.env.PROD) {
-        role = window.location.host.includes("vendor") ? "vendor" : "user";
-      } else {
-        role = import.meta.env.VITE_USER_ROLE;
-      }
-      setUserRole(role);
-      return true;
+      setUserRole(data.userType);
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("userRole", data.userType);
+      localStorage.setItem("isAuthenticated", "true");
+
+      toast.success("Logged in successfully");
+      return data.userType;
+    } catch (error) {
+      toast.error(error.response?.data || "Login failed");
+      console.error(error);
+      return null;
     }
-    return false;
   };
 
   const logout = () => {
     setIsAuthenticated(false);
-    setPhoneNumber("");
-    setOtpSent(false);
     setUserRole(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("isAuthenticated");
   };
 
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated,
-        phoneNumber,
-        otpSent,
         userRole,
-        sendOTP,
-        verifyOTP,
+        login,
         logout,
         setUserRole,
       }}

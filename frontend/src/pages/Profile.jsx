@@ -22,7 +22,7 @@ import {
   History,
   ShoppingCart,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 // Mock user data - replace with actual data fetching
@@ -41,7 +41,8 @@ const userData = {
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
-  const { logout, userRole } = useAuth();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   function onSubmit(values) {
     toast({
@@ -58,6 +59,7 @@ export default function Profile() {
       description: "You have been successfully logged out.",
     });
     logout();
+    navigate("/login");
   }
 
   return (
@@ -97,7 +99,7 @@ export default function Profile() {
         </Card>
       </main>
 
-      {userRole === "vendor" && (
+      {localStorage.getItem("userRole") === "vendor" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
             <NavItem href="/vendor" icon={ShoppingBag} tooltip="My Orders" />
@@ -111,7 +113,7 @@ export default function Profile() {
           </nav>
         </TooltipProvider>
       )}
-      {userRole === "user" && (
+      {localStorage.getItem("userRole") === "user" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
             <NavItem href="/history" icon={History} tooltip="My Orders" />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,33 +15,32 @@ import {
   Store,
   Package,
   History,
-  PhoneCall,
   Phone,
 } from "lucide-react";
-import { ProductCard } from "../components/elements/ProductCard";
-import { ProductDrawer } from "../components/elements/ProductDrawer";
-import Header from "../components/elements/Header";
-
-// Import the products data
-import { products } from "../assets/products";
-import { useAuth } from "../contexts/AuthContext";
-import { useCart } from "../hooks/useCart";
+import { ProductCard } from "@/components/elements/ProductCard";
+import { ProductDrawer } from "@/components/elements/ProductDrawer";
+import Header from "@/components/elements/Header";
+import { useCart } from "@/hooks/useCart";
+import axios from "axios";
 
 export default function Dashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("vegetables");
+  const [activeTab, setActiveTab] = useState("Vegetables");
   const navigate = useNavigate();
-  const { userRole } = useAuth();
   const { cart, addToCart } = useCart();
+  const [loading, setLoading] = useState(false);
 
-  const handleAddToCart = (product, quantity = 1, weight) => {
+  const handleAddToCart = (product, quantity, variant) => {
     addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
+      id: product.productId,
+      name: product.productName,
+      image: product.productImageUrl,
+      mrp: variant.mrp || product.mrp,
+      price: variant.netPrice || product.netPrice,
       quantity: quantity,
-      weight: weight || product.weights[0],
+      variant: variant,
     });
   };
 
@@ -68,9 +67,30 @@ export default function Dashboard() {
     </Tooltip>
   );
 
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(
+        `${
+          import.meta.env.VITE_API_URL
+        }/rest/subziwale/api/v1/products?category=${activeTab}`
+      );
+
+      setProducts(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [activeTab]);
+
   return (
     <div className="min-h-screen sm:border-l sm:border-r bg-gray-50">
-      <div className="max-w-sm  mx-auto">
+      <div className="max-w-sm mx-auto">
         <Header cart={cart} />
         <div className="px-3 py-2 sticky top-0 bg-gray-50 z-10 shadow-sm">
           <Button
@@ -83,12 +103,12 @@ export default function Dashboard() {
           </Button>
 
           <Tabs
-            defaultValue="vegetables"
+            defaultValue="Vegetables"
             onValueChange={setActiveTab}
             className="w-full"
           >
             <TabsList className="w-full bg-white rounded-lg px-1 py-0 gap-2 shadow-none">
-              {["vegetables", "fruits", "dairy"].map((tab) => (
+              {["Vegetables", "Fruits", "Dairy"].map((tab) => (
                 <TabsTrigger
                   key={tab}
                   value={tab}
@@ -108,16 +128,20 @@ export default function Dashboard() {
 
         <main className="container mx-auto px-4 py-2 mb-20">
           <div className="grid grid-cols-2 gap-4">
-            {products[activeTab].map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelect={handleProductSelect}
-                onAddToCart={() =>
-                  handleAddToCart(product, 1, product.weights[0])
-                }
-              />
-            ))}
+            {loading ? (
+              <div className="col-span-2 flex justify-center items-center h-64">
+                <div className="loader"></div>
+              </div>
+            ) : (
+              products?.map((product) => (
+                <ProductCard
+                  key={product.productId}
+                  product={product}
+                  onSelect={handleProductSelect}
+                  onAddToCart={handleAddToCart}
+                />
+              ))
+            )}
           </div>
         </main>
 
@@ -128,8 +152,8 @@ export default function Dashboard() {
           onAddToCart={handleAddToCart}
         />
 
-        {cart.length > 0 && (
-          <div className="fixed max-w-sm  mx-auto bottom-16 left-4 right-4">
+        {localStorage.getItem("userRole") === "user" && cart.length > 0 && (
+          <div className="fixed max-w-sm mx-auto bottom-16 left-4 right-4">
             <Button
               className="w-10/12 mx-auto flex bg-[#39c55e] hover:bg-[#2ea34d] text-white shadow-lg transition-all duration-200"
               onClick={() => navigate("/cart")}
@@ -139,75 +163,44 @@ export default function Dashboard() {
             </Button>
           </div>
         )}
-        {userRole === "user" && (
-          <TooltipProvider>
-            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
-              {renderNavItem(
-                "/history",
-                <History className="h-6 w-6 text-gray-500" />,
-                "My Orders"
-              )}
-              {renderNavItem(
-                "/",
-                <Store className="h-6 w-6 text-black" />,
-                "My Store"
-              )}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link to="/cart" className="relative">
-                    <ShoppingCart className="h-6 w-6 text-gray-600" />
-                    {cart.length > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-[#39c55e] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {cart.length}
-                      </span>
-                    )}
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Cart</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Support</p>
-                </TooltipContent>
-              </Tooltip>
-            </nav>
-          </TooltipProvider>
-        )}
-        {userRole === "vendor" && (
-          <TooltipProvider>
-            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
-              {renderNavItem(
-                "/vendor",
-                <ShoppingBag className="h-6 w-6 text-gray-500" />,
-                "My Orders"
-              )}
-              {renderNavItem(
-                "/vendor/store",
-                <Store className="h-6 w-6 text-black" />,
-                "My Store"
-              )}
-              {renderNavItem(
-                "/vendor/product/pricing",
-                <Package className="h-6 w-6 text-gray-500" />,
-                "My Products"
-              )}
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Support</p>
-                </TooltipContent>
-              </Tooltip>
-            </nav>
-          </TooltipProvider>
-        )}
+        <TooltipProvider>
+          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+            {renderNavItem(
+              "/history",
+              <History className="h-6 w-6 text-gray-500" />,
+              "My Orders"
+            )}
+            {renderNavItem(
+              "/",
+              <Store className="h-6 w-6 text-black" />,
+              "My Store"
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/cart" className="relative">
+                  <ShoppingCart className="h-6 w-6 text-gray-600" />
+                  {cart.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-[#39c55e] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {cart.length}
+                    </span>
+                  )}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Cart</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Phone className="h-6 w-6 text-gray-600 cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Support</p>
+              </TooltipContent>
+            </Tooltip>
+          </nav>
+        </TooltipProvider>
       </div>
     </div>
   );

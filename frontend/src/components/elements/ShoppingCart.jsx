@@ -27,9 +27,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import axios from "axios";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 
 const formatTime = (time) => {
@@ -60,6 +62,7 @@ const ShoppingCart = () => {
   const [notes, setNotes] = useState("");
   const [expressDelivery, setExpressDelivery] = useState(false);
   const [selfPickup, setSelfPickup] = useState(false);
+  const navigate = useNavigate();
 
   const timeSlots = [
     "08:00-10:00",
@@ -69,22 +72,6 @@ const ShoppingCart = () => {
     "16:00-18:00",
     "18:00-20:00",
   ];
-
-  useEffect(() => {
-    const availableSlots = timeSlots.filter((slot) => {
-      if (selectedDay === "tomorrow") {
-        return true; // All slots are available for tomorrow
-      } else {
-        return isSlotAvailable(slot);
-      }
-    });
-
-    if (availableSlots.length > 0 && !selectedTimeSlot) {
-      setSelectedTimeSlot(availableSlots[0]);
-    } else if (availableSlots.length === 0) {
-      setSelectedTimeSlot("");
-    }
-  }, [selectedDay]);
 
   const renderNavItem = (to, icon, label) => (
     <Tooltip>
@@ -99,8 +86,8 @@ const ShoppingCart = () => {
     </Tooltip>
   );
 
-  const handleUpdateQuantity = (id, weight, change) => {
-    updateQuantity(id, weight, change);
+  const handleUpdateQuantity = (id, variantId, change) => {
+    updateQuantity(id, variantId, change);
   };
 
   const calculateTotal = () => {
@@ -108,15 +95,20 @@ const ShoppingCart = () => {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const discount = 30;
-    const platformFees = 0;
-    const deliveryCharges = 0;
+    const mrpTotal = cart.reduce(
+      (sum, item) => sum + item.mrp * item.quantity,
+      0
+    );
+    const discount = mrpTotal - subtotal;
+    const platformFees = 200; // Fixed platform fees
+    const deliveryCharges = 0; // Delivery is 0 for now
     return {
       subtotal,
+      mrpTotal,
       discount,
       platformFees,
       deliveryCharges,
-      total: subtotal - discount + platformFees + deliveryCharges,
+      total: subtotal + platformFees + deliveryCharges,
     };
   };
 
@@ -143,6 +135,15 @@ const ShoppingCart = () => {
     });
   };
 
+  const postOrder = async (order) => {
+    try {
+      // const {data} = await axios
+    } catch (error) {
+      toast.error("Error creating order");
+      console.error(error);
+    }
+  };
+
   const isSlotAvailable = (slot) => {
     const currentTime = new Date();
     const [start] = slot.split("-");
@@ -156,6 +157,26 @@ const ShoppingCart = () => {
       return slotStartTime > currentTime;
     }
   };
+
+  useEffect(() => {
+    const availableSlots = timeSlots.filter((slot) => {
+      if (selectedDay === "tomorrow") {
+        return true; // All slots are available for tomorrow
+      } else {
+        return isSlotAvailable(slot);
+      }
+    });
+
+    if (availableSlots.length > 0 && !selectedTimeSlot) {
+      setSelectedTimeSlot(availableSlots[0]);
+    } else if (availableSlots.length === 0) {
+      setSelectedTimeSlot("");
+    }
+  }, [selectedDay]);
+
+  // useEffect(() => {
+  //   console.log(cart);
+  // }, []);
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -173,7 +194,11 @@ const ShoppingCart = () => {
         <div className="p-4 border-b">
           <div className="flex justify-between items-center mb-2">
             <h2 className="font-semibold">Order Items</h2>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/search")}
+            >
               <PlusCircle className="w-4 h-4 mr-2" />
               Add Item
             </Button>
@@ -181,30 +206,36 @@ const ShoppingCart = () => {
 
           {cart.map((item) => (
             <div
-              key={`${item.id}-${item.weight}`}
+              key={`${item.id}-${item.variant.inventoryId}`}
               className="flex items-center justify-between mb-2"
             >
               <div className="flex items-center">
                 <img
-                  src={`/images/patato.png`}
+                  src={item.image || `/images/${item.name.toLowerCase()}.png`}
                   alt={item.name}
-                  className="w-10 h-10 mr-2 rounded"
+                  className="w-10 h-10 mr-2 rounded object-cover"
                 />
                 <div>
                   <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-gray-500">{item.weight}</p>
+                  <p className="text-sm text-gray-500">
+                    {item.variant.variant} {item.variant.unit}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center">
                 <button
-                  onClick={() => handleUpdateQuantity(item.id, item.weight, -1)}
+                  onClick={() =>
+                    handleUpdateQuantity(item.id, item.variant.inventoryId, -1)
+                  }
                   className="p-1 bg-gray-200 rounded-full"
                 >
                   <Minus size={16} />
                 </button>
                 <span className="px-2">{item.quantity}</span>
                 <button
-                  onClick={() => handleUpdateQuantity(item.id, item.weight, 1)}
+                  onClick={() =>
+                    handleUpdateQuantity(item.id, item.variant.inventoryId, 1)
+                  }
                   className="p-1 bg-gray-200 rounded-full"
                 >
                   <Plus size={16} />
@@ -222,23 +253,25 @@ const ShoppingCart = () => {
           <h2 className="font-semibold mb-2">Order Summary</h2>
           <div className="flex justify-between mb-1">
             <span>MRP Total</span>
-            <span>₹ {totals.subtotal}</span>
+            <span>₹ {totals.mrpTotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between mb-1">
             <span>Discount</span>
-            <span className="text-green-500">- ₹ {totals.discount}</span>
+            <span className="text-green-500">
+              - ₹ {totals.discount.toFixed(2)}
+            </span>
           </div>
           <div className="flex justify-between mb-1">
             <span>Platform fees</span>
-            <span>₹ {totals.platformFees}</span>
+            <span>₹ {totals.platformFees.toFixed(2)}</span>
           </div>
           <div className="flex justify-between mb-1">
             <span>Delivery Charges</span>
-            <span>₹ {totals.deliveryCharges}</span>
+            <span>₹ {totals.deliveryCharges.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-semibold mt-2">
             <span>TOTAL</span>
-            <span>₹ {totals.total}</span>
+            <span>₹ {totals.total.toFixed(2)}</span>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 export const products = {
-  vegetables: [
+  Vegetables: [
     {
       id: 1,
       name: "Potato (Aloo)",
@@ -22,7 +22,7 @@ export const products = {
     },
     // Add more vegetables...
   ],
-  fruits: [
+  Fruits: [
     {
       id: 1,
       name: "Apple",
@@ -44,7 +44,7 @@ export const products = {
       defaultWeight: "500 gm",
     },
   ],
-  dairy: [
+  Dairy: [
     {
       id: 1,
       name: "Milk",

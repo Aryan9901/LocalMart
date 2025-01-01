@@ -20,19 +20,14 @@ import {
   Minus,
   PlusCircle,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Calendar } from "@/components/ui/calendar";
-import { format, addDays, isBefore, isAfter } from "date-fns";
+import { format, isBefore } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -74,7 +69,7 @@ export default function OrderDetails() {
   const [rescheduleDate, setRescheduleDate] = useState(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const navigate = useNavigate();
-  const { userRole } = useAuth();
+
   const [orderItems, setOrderItems] = useState([
     {
       name: "Potato (Aloo)",
@@ -155,7 +150,7 @@ export default function OrderDetails() {
   const canReschedule = currentTime.getTime() < slotStartTime.getTime(); // Before slot start time
 
   const cancelReasons =
-    userRole === "vendor"
+    localStorage.getItem("userRole") === "vendor"
       ? [
           "Incorrect address",
           "Customer not responding",
@@ -175,7 +170,9 @@ export default function OrderDetails() {
     // Implement cancellation logic here
     console.log(
       `Order ${
-        userRole === "vendor" ? "cancelled" : "cancellation requested"
+        localStorage.getItem("userRole") === "vendor"
+          ? "cancelled"
+          : "cancellation requested"
       } with reason:`,
       cancelReason
     );
@@ -186,7 +183,9 @@ export default function OrderDetails() {
     // Implement rescheduling logic here
     console.log(
       `Order ${
-        userRole === "vendor" ? "rescheduled" : "reschedule requested"
+        localStorage.getItem("userRole") === "vendor"
+          ? "rescheduled"
+          : "reschedule requested"
       } to:`,
       format(rescheduleDate, "PPP"),
       "Time slot:",
@@ -226,7 +225,7 @@ export default function OrderDetails() {
         <section className="rounded-lg bg-white p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-medium">Order Items</h2>
-            {userRole === "vendor" && (
+            {localStorage.getItem("userRole") === "vendor" && (
               <Button variant="outline" size="sm" onClick={handleAddNewItem}>
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Add Item
@@ -252,7 +251,7 @@ export default function OrderDetails() {
                     ₹ {item.price} per unit
                   </p>
                 </div>
-                {userRole === "vendor" && (
+                {localStorage.getItem("userRole") === "vendor" && (
                   <div className="flex items-center">
                     <Button
                       variant="outline"
@@ -343,7 +342,7 @@ export default function OrderDetails() {
           </p>
         </section>
 
-        {userRole === "vendor" ? (
+        {localStorage.getItem("userRole") === "vendor" ? (
           <footer className="bg-white p-4">
             <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
               <Button
@@ -409,7 +408,9 @@ export default function OrderDetails() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium">
-                {userRole === "vendor" ? "Cancel Order" : "Cancel Order"}
+                {localStorage.getItem("userRole") === "vendor"
+                  ? "Cancel Order"
+                  : "Cancel Order"}
               </h2>
               <Button
                 variant="ghost"
@@ -510,7 +511,7 @@ export default function OrderDetails() {
           </div>
         </div>
       )}
-      {userRole === "vendor" && (
+      {localStorage.getItem("userRole") === "vendor" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
             {renderNavItem(
@@ -540,7 +541,7 @@ export default function OrderDetails() {
           </nav>
         </TooltipProvider>
       )}
-      {userRole === "user" && (
+      {localStorage.getItem("userRole") === "user" && (
         <TooltipProvider>
           <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
             {renderNavItem(
@@ -579,12 +580,14 @@ export default function OrderDetails() {
 }
 
 const UserMenu = () => {
-  const { userRole } = useAuth();
-
   return (
     <div className="ml-auto flex items-center justify-center mr-2">
       <Link
-        to={userRole === "vendor" ? "/vendor/profile" : "/profile"}
+        to={
+          localStorage.getItem("userRole") === "vendor"
+            ? "/vendor/profile"
+            : "/profile"
+        }
         className="ml-auto mr-2"
       >
         <UserCircle className="h-7 w-7 " />

@@ -1,18 +1,5 @@
-import React, { useState } from "react";
-import {
-  GanttChartIcon as ChartNoAxesGantt,
-  ChevronLeft,
-  MoreVertical,
-  ShoppingBag,
-  Store,
-  Package,
-  LogOut,
-  Phone,
-  UserCircle,
-  ClipboardList,
-  StoreIcon,
-  User,
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ShoppingBag, Store, Package, Phone, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -24,12 +11,8 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { generateToken, messaging } from "../../notifications/firebase";
+import { onMessage } from "firebase/messaging";
 
 const initialOrders = [
   {
@@ -220,6 +203,29 @@ export default function OrderPage() {
       )
     );
   };
+
+  function playNotificationSound(notificationText) {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(notificationText);
+
+    // Optional: Customize voice, pitch, rate, etc.
+    // utterance.voice = ...
+
+    synth.speak(utterance);
+  }
+
+  const checkNotification = () => {
+    onMessage(messaging, (payload) => {
+      console.log(payload.notification.title + " " + payload.notification.body);
+      const voiceMessage = `${payload.notification.title} ${payload.notification.body}`;
+      playNotificationSound(voiceMessage);
+    });
+  };
+
+  useEffect(() => {
+    generateToken();
+    checkNotification();
+  }, []);
 
   return (
     <div className="min-h-screen sm:border-l sm:border-r bg-gray-50 pb-20">
