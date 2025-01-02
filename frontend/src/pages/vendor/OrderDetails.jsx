@@ -48,7 +48,7 @@ const timeSlots = [
 ];
 
 const formatTimeSlot = (slot) => {
-  const [start, end] = slot.split("-");
+  const [start, end] = slot?.split("-");
   return `${formatTime(start)} - ${formatTime(end)}`;
 };
 
@@ -346,7 +346,9 @@ export default function OrderDetails() {
               <p className="text-sm text-gray-600">
                 Time Slot:{" "}
                 <span className="font-medium">
-                  {formatTimeSlot(order.timeSlot)}
+                  {order?.timeSlot
+                    ? formatTimeSlot(order?.timeSlot)
+                    : "Not Given"}
                 </span>
               </p>
             </section>

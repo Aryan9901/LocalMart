@@ -67,25 +67,33 @@ export default function Dashboard() {
     </Tooltip>
   );
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (controller) => {
     try {
       setLoading(true);
       const { data } = await axios.get(
         `${
           import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/products?category=${activeTab}`
+        }/rest/subziwale/api/v1/products?category=${activeTab}`,
+        {
+          signal: controller.signal,
+        }
       );
 
       setProducts(data);
     } catch (error) {
-      console.error(error);
+      if (error.name !== "AbortError") {
+        console.error(error);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    const controller = new AbortController();
+    fetchProducts(controller);
+
+    return () => controller.abort();
   }, [activeTab]);
 
   return (

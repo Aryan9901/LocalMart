@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import { generateToken, messaging } from "../../notifications/firebase";
 import { onMessage } from "firebase/messaging";
+import axios from "axios";
 
 const initialOrders = [
   {
@@ -222,9 +223,33 @@ export default function OrderPage() {
     });
   };
 
+  const fetchOrders = async (controller) => {
+    try {
+      const vendor = JSON.parse(localStorage.getItem("user"));
+      const vendorId = vendor.id;
+      const { data } = await axios.get(
+        `${
+          import.meta.env.VITE_API_URL
+        }/rest/subziwale/api/v1/orders/vendor?status=${"Pending"}&Integer=${"0"}`,
+        {
+          headers: {
+            "X-Vendor-Id": vendorId,
+          },
+        }
+      );
+      console.log(data);
+      setOrders(data);
+    } catch (error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    }
+  };
+
   useEffect(() => {
     generateToken();
     checkNotification();
+    fetchOrders();
   }, []);
 
   return (
