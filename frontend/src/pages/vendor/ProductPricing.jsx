@@ -151,7 +151,6 @@ export default function PricingAvailability() {
         available: product.available,
       }));
 
-    console.log("Changed products:", changedProducts);
     const vendorId = VENDOR_ID;
     try {
       const { data } = await axios.put(
@@ -163,7 +162,6 @@ export default function PricingAvailability() {
           },
         }
       );
-      console.log("Changes saved successfully", data);
       setChangedItems(new Set());
 
       // fetchProducts();

@@ -100,8 +100,6 @@ const ShoppingCart = () => {
   };
 
   const calculateTotal = () => {
-    console.log(cart);
-
     const subtotal = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -130,7 +128,6 @@ const ShoppingCart = () => {
   };
 
   const handleSaveAddress = async () => {
-    console.log(tempAddress);
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user.id;
     tempAddress.type = "home";
@@ -211,7 +208,6 @@ const ShoppingCart = () => {
           },
         }
       );
-      console.log("Order submitted successfully", response.data);
       toast.success("Order placed successfully!");
       clearCart();
       navigate("/");
@@ -274,7 +270,6 @@ const ShoppingCart = () => {
       );
 
       setAddress(data[0]);
-      // console.log(data);
     } catch (error) {
       console.error(error);
     } finally {

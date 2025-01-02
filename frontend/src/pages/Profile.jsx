@@ -246,7 +246,9 @@ function ProfileView({ userData, address, setIsEditing, handleLogout }) {
         {addressFields.map(({ key, label }) => (
           <div key={key} className="space-y-1">
             <p className="text-sm font-medium text-gray-500">{label}</p>
-            <p className="text-base">{address[key] || "Not provided"}</p>
+            <p className="text-base">
+              {address && address[key] ? address[key] : "Not provided"}
+            </p>
           </div>
         ))}
       </div>

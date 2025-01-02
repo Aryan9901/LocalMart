@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import {
   BadgeAlert,
   BadgeCheck,
+  BadgeDollarSign,
   BadgeInfo,
+  Ban,
+  CalendarSync,
   History,
+  IndianRupee,
   Phone,
   ShoppingCart,
   Store,
@@ -73,17 +78,46 @@ const OrderHistory = () => {
   const renderOrderStatus = (status) => {
     switch (status) {
       case "Completed":
-        return <BadgeCheck className="w-6 h-6 rounded-full text-green-500" />;
+        return (
+          <div className="flex items-center gap-1 text-green-500 text-sm">
+            {status}
+            <BadgeCheck className="w-6 h-6 rounded-full " />
+          </div>
+        );
       case "Pending":
-        return <BadgeInfo className="w-6 h-6 rounded-full text-yellow-500" />;
+        return (
+          <div className="flex items-center gap-1 text-yellow-500 text-sm">
+            {status}
+            <BadgeInfo className="w-6 h-6 rounded-full " />
+          </div>
+        );
+      case "Cancelled":
+        return (
+          <div className="flex items-center gap-1 text-red-500 text-sm">
+            {status}
+            <Ban className="w-6 h-6 rounded-full " />
+          </div>
+        );
+      case "Paid":
+        return (
+          <div className="flex items-center gap-1 text-blue-500 text-sm">
+            {status}
+            <BadgeDollarSign className="w-6 h-6 rounded-full " />
+          </div>
+        );
       default:
-        return <BadgeAlert className="w-6 h-6 rounded-full text-red-500" />;
+        return (
+          <div className="flex items-center gap-1 text-amber-700 text-sm">
+            {status}
+            <CalendarSync className="w-6 h-6 rounded-full " />
+          </div>
+        );
     }
   };
 
   const renderProductImage = (product) => (
     <div
-      key={product.productId}
+      key={uuidv4()}
       className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100"
     >
       {product.productImageUrl ? (
@@ -91,10 +125,6 @@ const OrderHistory = () => {
           src={product.productImageUrl}
           alt={product.productName}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            e.currentTarget.src = "/placeholder.svg?height=48&width=48";
-            e.currentTarget.alt = "Image not found";
-          }}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-xs bg-gray-200">
@@ -119,23 +149,21 @@ const OrderHistory = () => {
       </div>
 
       <div className="p-4 pb-16 max-w-sm mx-auto">
-        {error ? (
-          <div className="text-red-500 text-center">{error}</div>
-        ) : orders.length === 0 ? (
+        {orders.length === 0 ? (
           <div className="text-center text-gray-500">No orders found</div>
         ) : (
           <div className="space-y-4">
-            {orders?.reverse()?.map((order) => (
+            {orders?.reverse()?.map((order, index) => (
               <div
-                key={order.orderId}
+                key={uuidv4()}
                 className="bg-white rounded-lg p-4 shadow-sm cursor-pointer"
-                onClick={() => navigate(`/history/${order.orderId}`)}
+                onClick={() => navigate(`/history/${order?.orderId}`)}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-sm text-gray-500">
-                    {new Date(order.orderDate).toLocaleString()}
+                    {new Date(order?.orderDate).toLocaleString()}
                   </div>
-                  {renderOrderStatus(order.status)}
+                  {renderOrderStatus(order?.status)}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
