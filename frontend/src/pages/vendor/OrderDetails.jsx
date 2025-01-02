@@ -243,12 +243,14 @@ export default function OrderDetails() {
   };
 
   const handleAddNewItem = () => {
-    setEditedItems(
-      editedItems
-        .map((item) => ({ ...item, edited: true }))
-        .concat({ ...newItem, edited: true })
-    );
-    setNewItem({ productName: "", quantity: 0, unit: "", netPrice: 0 });
+    // setEditedItems(
+    //   editedItems
+    //     .map((item) => ({ ...item, edited: true }))
+    //     .concat({ ...newItem, edited: true })
+    // );
+    // setNewItem({ productName: "", quantity: 0, unit: "", netPrice: 0 });
+
+    navigate("/vendor/orders/add/new");
   };
 
   const handleSubmitChanges = async () => {

@@ -214,6 +214,7 @@ const ShoppingCart = () => {
       console.log("Order submitted successfully", response.data);
       toast.success("Order placed successfully!");
       clearCart();
+      navigate("/");
     } catch (error) {
       console.error("Error submitting order:", error);
       toast.error("Failed to place order. Please try again.");
