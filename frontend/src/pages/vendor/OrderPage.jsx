@@ -1,107 +1,65 @@
 import React, { useEffect, useState } from "react";
-import { ShoppingBag, Store, Package, Phone, UserCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  ShoppingBag,
+  Store,
+  Package,
+  Phone,
+  UserCircle,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import { generateToken, messaging } from "../../notifications/firebase";
 import { onMessage } from "firebase/messaging";
 import axios from "axios";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
-const initialOrders = [
-  {
-    id: "1",
-    customerName: "Ramesh Kumar Singh",
-    initials: "RK",
-    timestamp: "24th Dec, 2024 5:34 PM",
-    amount: 469,
-    items: [
-      "/images/patato.png",
-      "/images/tamato.png",
-      "/images/redchilli.png",
-      "/images/onion.png",
-    ],
-    extraItems: 3,
-    status: "pending",
-  },
-  {
-    id: "2",
-    customerName: "Ankita Munshi",
-    initials: "AM",
-    timestamp: "24th Dec, 2024 4:20 PM",
-    amount: 244,
-    items: ["/images/onion.png", "/images/redchilli.png", "/images/patato.png"],
-    status: "pending",
-  },
-  {
-    id: "3",
-    customerName: "Akhil Ganguly",
-    initials: "AG",
-    timestamp: "24th Dec, 2024 4:50 PM",
-    amount: 56,
-    items: ["/images/onion.png"],
-    status: "pending",
-  },
-  {
-    id: "4",
-    customerName: "Rajesh Bandi",
-    initials: "RB",
-    timestamp: "24th Dec, 2024 5:50 PM",
-    amount: 167,
-    items: [
-      "/images/patato.png",
-      "/images/redchilli.png",
-      "/images/onion.png",
-      "/images/tamato.png",
-    ],
-    status: "pending",
-  },
-  {
-    id: "5",
-    customerName: "Prabha Biren Deep",
-    initials: "PB",
-    timestamp: "24th Dec, 2024 6:34 PM",
-    amount: 282,
-    items: [
-      "/images/patato.png",
-      "/images/patato.png",
-      "/images/patato.png",
-      "/images/patato.png",
-    ],
-    extraItems: 1,
-    status: "pending",
-  },
-  {
-    id: "6",
-    customerName: "Sanjay Mehta",
-    initials: "SM",
-    timestamp: "24th Dec, 2024 3:15 PM",
-    amount: 350,
-    items: ["/images/patato.png", "/images/patato.png", "/images/patato.png"],
-    status: "completed",
-    paymentStatus: "payment_due",
-  },
-  {
-    id: "7",
-    customerName: "Priya Sharma",
-    initials: "PS",
-    timestamp: "24th Dec, 2024 2:45 PM",
-    amount: 180,
-    items: ["/images/patato.png", "/images/patato.png"],
-    status: "completed",
-    paymentStatus: "payment_due",
-  },
-];
+const VendorMenu = () => {
+  const { logout } = useAuth();
 
-function OrderCard({ order, onPaymentDone, showPaymentButton }) {
+  return (
+    <Link to="/vendor/profile" className="ml-auto mr-2">
+      <UserCircle className="h-7 w-7 " />
+    </Link>
+  );
+};
+
+function OrderCard({ order, onPaymentDone }) {
   const navigate = useNavigate();
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "text-yellow-500";
+      case "Rescheduled":
+        return "text-blue-500";
+      case "Cancelled":
+        return "text-red-500";
+      case "Completed":
+        return "text-green-500";
+      case "Paid":
+        return "text-green-600";
+      case "PaymentPending":
+        return "text-orange-500";
+      default:
+        return "text-gray-500";
+    }
+  };
 
   return (
     <motion.div
@@ -110,44 +68,48 @@ function OrderCard({ order, onPaymentDone, showPaymentButton }) {
       transition={{ duration: 0.3 }}
       className="p-4 bg-white rounded-lg border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
       onClick={(e) => {
-        // Prevent navigation when clicking the "Payment Done" button
         if (e.target.tagName !== "BUTTON") {
-          navigate("/vendor/orders/id");
+          navigate(`/vendor/orders/${order.orderId}`);
         }
       }}
     >
       <div className="flex items-start justify-between">
         <div className="flex gap-3">
           <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-            <span className="text-sm font-medium">{order.initials}</span>
+            <span className="text-sm font-medium">
+              {order.customerName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
+            </span>
           </div>
           <div>
             <p className="font-medium text-gray-900">{order.customerName}</p>
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <span className="h-4 w-4">🕒</span>
-              {order.timestamp}
+              {new Date(order.orderDate).toLocaleString()}
             </div>
           </div>
         </div>
-        <p className="font-medium text-green-600">₹ {order.amount}</p>
+        <p className="font-medium text-green-600">₹ {order.total}</p>
       </div>
 
       <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-2">
-        {order.items.map((item, index) => (
+        {order.products.slice(0, 4).map((product, index) => (
           <div
             key={index}
             className="h-14 w-14 flex-shrink-0 rounded-lg overflow-hidden border bg-gray-50"
           >
             <img
-              src={item}
-              alt="Product"
+              src={product.productImageUrl}
+              alt={product.productName}
               className="h-full w-full object-cover"
             />
           </div>
         ))}
-        {order.extraItems && (
+        {order.products.length > 4 && (
           <div className="h-14 w-14 flex-shrink-0 rounded-lg border bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-600">
-            +{order.extraItems}
+            +{order.products.length - 4}
           </div>
         )}
       </div>
@@ -155,52 +117,37 @@ function OrderCard({ order, onPaymentDone, showPaymentButton }) {
       <div className="mt-4 flex items-center justify-between">
         <div className="text-sm font-medium">
           Status:{" "}
-          <span
-            className={
-              order.status === "completed" &&
-              order.paymentStatus === "completed"
-                ? "text-green-600"
-                : "text-orange-500"
-            }
-          >
-            {order.status === "completed" && order.paymentStatus === "completed"
-              ? "Completed"
-              : order.status === "completed"
-              ? "Payment Due"
-              : "Pending"}
-          </span>
+          <span className={getStatusColor(order.status)}>{order.status}</span>
         </div>
-        {showPaymentButton &&
-          order.status === "completed" &&
-          order.paymentStatus === "payment_due" && (
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onPaymentDone(order.id);
-              }}
-              variant="outline"
-              size="sm"
-            >
-              Payment Done
-            </Button>
-          )}
+        {order.status === "PaymentPending" && (
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPaymentDone(order.orderId);
+            }}
+            variant="outline"
+            size="sm"
+          >
+            Payment Done
+          </Button>
+        )}
       </div>
     </motion.div>
   );
 }
 
 export default function OrderPage() {
-  const [orders, setOrders] = useState(initialOrders);
-  const pendingOrders = orders.filter((order) => order.status === "pending");
-  const completedOrders = orders.filter(
-    (order) => order.status === "completed"
-  );
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("Pending");
+  const [isLoading, setIsLoading] = useState(false);
   const { logout } = useAuth();
 
   const handlePaymentDone = (orderId) => {
     setOrders(
       orders.map((order) =>
-        order.id === orderId ? { ...order, paymentStatus: "completed" } : order
+        order.orderId === orderId ? { ...order, status: "Paid" } : order
       )
     );
   };
@@ -208,10 +155,6 @@ export default function OrderPage() {
   function playNotificationSound(notificationText) {
     const synth = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(notificationText);
-
-    // Optional: Customize voice, pitch, rate, etc.
-    // utterance.voice = ...
-
     synth.speak(utterance);
   }
 
@@ -223,38 +166,64 @@ export default function OrderPage() {
     });
   };
 
-  const fetchOrders = async (controller) => {
+  const fetchOrders = async (status) => {
+    setLoading(true);
+    setError(null);
     try {
       const vendor = JSON.parse(localStorage.getItem("user"));
       const vendorId = vendor.id;
       const { data } = await axios.get(
         `${
           import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/orders/vendor?status=${"Pending"}&Integer=${"0"}`,
+        }/rest/subziwale/api/v1/orders/vendor?status=${status}&Integer=0`,
         {
           headers: {
             "X-Vendor-Id": vendorId,
           },
         }
       );
-      console.log(data);
       setOrders(data);
     } catch (error) {
-      if (error.name != "AbortError") {
-        console.error(error);
-      }
+      console.error(error);
+      setError("Failed to fetch orders. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderOrders = () => {
+    if (loading) {
+      return <div className="loader"></div>;
+    } else if (error) {
+      return <div className="text-center text-red-500 py-4">{error}</div>;
+    } else if (orders.length === 0) {
+      return (
+        <div className="text-center text-gray-500 py-4">No orders found.</div>
+      );
+    } else {
+      return orders
+        .slice()
+        .reverse()
+        .map((order) => (
+          <OrderCard
+            key={order.orderId}
+            order={order}
+            onPaymentDone={handlePaymentDone}
+          />
+        ));
     }
   };
 
   useEffect(() => {
     generateToken();
     checkNotification();
-    fetchOrders();
+    const controller = new AbortController();
+    fetchOrders("Pending");
+    // return () => controller.abort();
   }, []);
 
   return (
     <div className="min-h-screen sm:border-l sm:border-r bg-gray-50 pb-20">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 bg-white border-b sticky top-0 z-10">
         <h1 className="text-lg font-semibold text-gray-900 ml-2">
           Orders Page
@@ -262,53 +231,68 @@ export default function OrderPage() {
         <VendorMenu />
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="pending" className="w-full flex flex-col">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value);
+          fetchOrders(value);
+        }}
+        className="w-full flex flex-col"
+      >
         <TabsList className="w-full justify-start h-12 p-0 bg-white border-b rounded-none sticky top-12 z-10 flex-shrink-0">
           <TabsTrigger
-            value="pending"
+            value="Pending"
             className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none transition-colors"
           >
             Pending Orders
           </TabsTrigger>
           <TabsTrigger
-            value="completed"
+            value="Completed"
             className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none transition-colors"
           >
             Completed Orders
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent
-          value="pending"
-          className="px-4 space-y-2 py-1 flex-1 overflow-y-auto"
-        >
-          {pendingOrders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onPaymentDone={handlePaymentDone}
-              showPaymentButton={false}
-            />
-          ))}
-        </TabsContent>
+        <div className="px-4 py-2">
+          <Select
+            value={activeTab}
+            onValueChange={(value) => {
+              setActiveTab(value);
+              fetchOrders(value);
+            }}
+          >
+            <SelectTrigger className="w-44 ml-auto focus-visible:ring-offset-0 focus-visible:ring-1">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem className="cursor-pointer" value="Pending">
+                Pending
+              </SelectItem>
+              <SelectItem className="cursor-pointer" value="Rescheduled">
+                Rescheduled
+              </SelectItem>
+              <SelectItem className="cursor-pointer" value="Cancelled">
+                Cancelled
+              </SelectItem>
+              <SelectItem className="cursor-pointer" value="Completed">
+                Completed
+              </SelectItem>
+              <SelectItem className="cursor-pointer" value="Paid">
+                Paid
+              </SelectItem>
+              <SelectItem className="cursor-pointer" value="PaymentPending">
+                Payment Pending
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <TabsContent
-          value="completed"
-          className="px-4 py-4 space-y-4 flex-1 overflow-y-auto"
-        >
-          {completedOrders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onPaymentDone={handlePaymentDone}
-              showPaymentButton={true}
-            />
-          ))}
-        </TabsContent>
+        <div className="px-4 space-y-2 py-0 flex-1 overflow-y-auto">
+          {renderOrders()}
+        </div>
       </Tabs>
 
-      {/* Bottom Navigation */}
       <TooltipProvider>
         <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
           <Tooltip>
@@ -358,16 +342,11 @@ export default function OrderPage() {
           </Tooltip>
         </nav>
       </TooltipProvider>
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="loader"></div>
+        </div>
+      )}
     </div>
   );
 }
-
-const VendorMenu = () => {
-  const { logout } = useAuth();
-
-  return (
-    <Link to="/vendor/profile" className="ml-auto mr-2">
-      <UserCircle className="h-7 w-7 " />
-    </Link>
-  );
-};

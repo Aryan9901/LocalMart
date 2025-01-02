@@ -94,6 +94,8 @@ export default function OrderDetails() {
             import.meta.env.VITE_API_URL
           }/rest/subziwale/api/v1/order/details?orderId=${id}`
         );
+        console.log(data);
+
         setOrder(data);
       } catch (error) {
         console.error(error);
@@ -346,9 +348,11 @@ export default function OrderDetails() {
               <p className="text-sm text-gray-600">
                 Time Slot:{" "}
                 <span className="font-medium">
-                  {order?.timeSlot
-                    ? formatTimeSlot(order?.timeSlot)
-                    : "Not Given"}
+                  {!order?.expressDelivery
+                    ? order?.timeSlot
+                      ? formatTimeSlot(order?.timeSlot)
+                      : "Not Given"
+                    : "Express Delivery"}
                 </span>
               </p>
             </section>
@@ -357,57 +361,76 @@ export default function OrderDetails() {
 
         {localStorage.getItem("userRole") === "vendor" ? (
           <footer className="bg-white p-4">
-            <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
-              <Button
-                className="bg-red-600 w-1/3 hover:bg-red-500"
-                onClick={() => setIsCancelModalOpen(true)}
-                disabled={
-                  !canRequestCancellation || order?.status !== "Pending"
-                }
-              >
-                Cancel Order
-              </Button>
-              <Button
-                className="bg-blue-600 w-1/3 hover:bg-blue-700"
-                onClick={() => setIsRescheduleModalOpen(true)}
-                disabled={!canReschedule || order?.status !== "Pending"}
-              >
-                Reschedule
-              </Button>
-              <Button
-                className="bg-green-600 w-1/3 hover:bg-green-700"
-                onClick={handleMarkDelivered}
-                disabled={order?.status === "Completed"}
-              >
-                Mark Delivered
-              </Button>
-            </div>
-          </footer>
-        ) : (
-          <footer className="bg-white p-4">
-            <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
-              {canRequestCancellation && order?.status === "Pending" && (
+            {!order?.expressDelivery ? (
+              <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
                 <Button
                   className="bg-red-600 w-1/3 hover:bg-red-500"
                   onClick={() => setIsCancelModalOpen(true)}
+                  disabled={
+                    !canRequestCancellation || order?.status !== "Pending"
+                  }
                 >
                   Cancel Order
                 </Button>
-              )}
-              {canReschedule && order?.status === "Pending" && (
                 <Button
                   className="bg-blue-600 w-1/3 hover:bg-blue-700"
                   onClick={() => setIsRescheduleModalOpen(true)}
+                  disabled={!canReschedule || order?.status !== "Pending"}
                 >
                   Reschedule
                 </Button>
+                <Button
+                  className="bg-green-600 w-1/3 hover:bg-green-700"
+                  onClick={handleMarkDelivered}
+                  disabled={order?.status === "Completed"}
+                >
+                  Mark Delivered
+                </Button>
+              </div>
+            ) : (
+              <h4 className="text-center text-balance text-base text-red-400">
+                Express Order Can't be Rescheduled or Cancelled
+              </h4>
+            )}
+          </footer>
+        ) : (
+          <footer className="bg-white p-4">
+            <div className="">
+              {order?.expressDelivery ? (
+                <div>
+                  <Button
+                    className="bg-green-600 w-1/3 hover:bg-green-700"
+                    onClick={handleBuyAgain}
+                  >
+                    Buy Again
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-full gap-2 flex items-center justify-center">
+                  {canRequestCancellation && order?.status === "Pending" && (
+                    <Button
+                      className="bg-red-600 w-1/3 hover:bg-red-500"
+                      onClick={() => setIsCancelModalOpen(true)}
+                    >
+                      Cancel Order
+                    </Button>
+                  )}
+                  {canReschedule && order?.status === "Pending" && (
+                    <Button
+                      className="bg-blue-600 w-1/3  hover:bg-blue-700"
+                      onClick={() => setIsRescheduleModalOpen(true)}
+                    >
+                      Reschedule
+                    </Button>
+                  )}
+                  <Button
+                    className="bg-green-600 w-1/3 hover:bg-green-700"
+                    onClick={handleBuyAgain}
+                  >
+                    Buy Again
+                  </Button>
+                </div>
               )}
-              <Button
-                className="bg-green-600 w-1/3 hover:bg-green-700"
-                onClick={handleBuyAgain}
-              >
-                Buy Again
-              </Button>
             </div>
             {!canRequestCancellation &&
               !canReschedule &&

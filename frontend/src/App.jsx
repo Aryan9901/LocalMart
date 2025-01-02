@@ -57,7 +57,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="store/search" element={<SearchPage />} />
               <Route path="product/pricing" element={<ProductPricing />} />
-              <Route path="orders/id" element={<OrderDetails />} />
+              <Route path="orders/:id" element={<OrderDetails />} />
             </Route>
 
             {/* User Routes */}
