@@ -18,8 +18,6 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
-import { generateToken, messaging } from "../../notifications/firebase";
-import { onMessage } from "firebase/messaging";
 import axios from "axios";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -152,20 +150,6 @@ export default function OrderPage() {
     );
   };
 
-  function playNotificationSound(notificationText) {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(notificationText);
-    synth.speak(utterance);
-  }
-
-  const checkNotification = () => {
-    onMessage(messaging, (payload) => {
-      console.log(payload.notification.title + " " + payload.notification.body);
-      const voiceMessage = `${payload.notification.title} ${payload.notification.body}`;
-      playNotificationSound(voiceMessage);
-    });
-  };
-
   const fetchOrders = async (status) => {
     setLoading(true);
     setError(null);
@@ -185,7 +169,7 @@ export default function OrderPage() {
       setOrders(data);
     } catch (error) {
       console.error(error);
-      setError("Failed to fetch orders. Please try again.");
+      // setError("Failed to fetch orders. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -215,11 +199,9 @@ export default function OrderPage() {
   };
 
   useEffect(() => {
-    generateToken();
-    checkNotification();
     const controller = new AbortController();
     fetchOrders("Pending");
-    // return () => controller.abort();
+    return () => controller.abort();
   }, []);
 
   return (
@@ -262,7 +244,7 @@ export default function OrderPage() {
               fetchOrders(value);
             }}
           >
-            <SelectTrigger className="w-44 ml-auto focus-visible:ring-offset-0 focus-visible:ring-1">
+            <SelectTrigger className="w-44 ml-auto focus:ring-offset-0 focus:ring-1 focus-visible:ring-offset-0 focus-visible:ring-1">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>

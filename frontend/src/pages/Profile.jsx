@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
 
 const getUserData = () => {
   const storedData = localStorage.getItem("user");
@@ -62,6 +63,7 @@ const getUserData = () => {
 
 export default function Profile() {
   const [userData, setUserData] = useState(getUserData());
+  const [address, setAddress] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const { logout } = useAuth();
@@ -80,6 +82,45 @@ export default function Profile() {
         console.error("Error parsing user data:", error);
       }
     }
+  }, []);
+
+  const fetchAddress = async (type, id) => {
+    try {
+      if (type === "vendor") {
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
+          {
+            headers: {
+              "X-Vendor-Id": id,
+            },
+          }
+        );
+        console.log(data);
+        setAddress(data[0]);
+      } else {
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
+          {
+            headers: {
+              "X-User-Id": id,
+            },
+          }
+        );
+        console.log(data);
+        setAddress(data[0]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const userType = user.userType;
+    const id = user.id;
+    console.log(userType, id);
+
+    fetchAddress(userType, id);
   }, []);
 
   function onSubmit(values) {
@@ -122,13 +163,17 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="pt-0 ">
             {isEditing ? (
-              <ProfileEditForm
-                userData={userData}
-                onSubmit={onSubmit}
-                setIsEditing={setIsEditing}
+              <AddressEditForm
+                address={address}
+                onCancel={() => setIsEditing(false)}
+                onSuccess={(updatedAddress) => {
+                  setAddress(updatedAddress);
+                  setIsEditing(false);
+                }}
               />
             ) : (
               <ProfileView
+                address={address}
                 userData={userData}
                 setIsEditing={setIsEditing}
                 handleLogout={handleLogout}
@@ -172,13 +217,15 @@ export default function Profile() {
   );
 }
 
-function ProfileView({ userData, setIsEditing, handleLogout }) {
+function ProfileView({ userData, address, setIsEditing, handleLogout }) {
   const addressFields = [
-    { key: "house", label: "House No / Flat / Floor / Building" },
-    { key: "area", label: "Locality / Area / Sector" },
-    { key: "pincode", label: "Pin Code" },
+    { key: "addressLineOne", label: "House No / Flat / Floor / Building" },
+    { key: "addressLineTwo", label: "Locality / Area / Sector" },
+    { key: "city", label: "City" },
+    { key: "pinCode", label: "Pin Code" },
     { key: "district", label: "District" },
     { key: "state", label: "State/UT" },
+    { key: "country", label: "Country" },
   ];
 
   return (
@@ -199,7 +246,7 @@ function ProfileView({ userData, setIsEditing, handleLogout }) {
         {addressFields.map(({ key, label }) => (
           <div key={key} className="space-y-1">
             <p className="text-sm font-medium text-gray-500">{label}</p>
-            <p className="text-base">{userData[key] || "Not provided"}</p>
+            <p className="text-base">{address[key] || "Not provided"}</p>
           </div>
         ))}
       </div>
@@ -208,7 +255,7 @@ function ProfileView({ userData, setIsEditing, handleLogout }) {
           onClick={() => setIsEditing(true)}
           className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
         >
-          Update Profile
+          Update Address
         </button>
         <button
           onClick={handleLogout}
@@ -221,8 +268,24 @@ function ProfileView({ userData, setIsEditing, handleLogout }) {
   );
 }
 
-function ProfileEditForm({ userData, onSubmit, setIsEditing }) {
-  const [formData, setFormData] = useState(userData);
+function NavItem({ href, icon: Icon, tooltip, onClick }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link to={href} onClick={onClick} className="p-2">
+          <Icon className="h-6 w-6 text-gray-500" />
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{tooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function AddressEditForm({ address, onCancel, onSuccess }) {
+  const [formData, setFormData] = useState(address);
+  const { toast } = useToast();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -232,69 +295,49 @@ function ProfileEditForm({ userData, onSubmit, setIsEditing }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address/${
+          address.id
+        }`,
+        formData,
+        {
+          headers: {
+            [user.userType === "vendor" ? "X-Vendor-Id" : "X-User-Id"]: user.id,
+          },
+        }
+      );
+      toast({
+        title: "Address Updated",
+        description: "Your address has been successfully updated.",
+      });
+      onSuccess(response.data);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to update address. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const addressFields = [
-    { key: "house", label: "House No / Flat / Floor / Building" },
-    { key: "area", label: "Locality / Area / Sector" },
-    { key: "pincode", label: "Pin Code" },
+    { key: "addressLineOne", label: "Address Line 1" },
+    { key: "addressLineTwo", label: "Address Line 2" },
+    { key: "city", label: "City" },
+    { key: "pinCode", label: "Pin Code" },
     { key: "district", label: "District" },
-    { key: "state", label: "State/UT" },
+    { key: "state", label: "State" },
+    { key: "country", label: "Country" },
+    { key: "contactNo", label: "Contact No" },
   ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-1">
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
-        />
-      </div>
-      <div className="space-y-1">
-        <label
-          htmlFor="emailId"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          type="email"
-          id="emailId"
-          name="emailId"
-          value={formData.emailId}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
-        />
-      </div>
-      <div className="space-y-1">
-        <label
-          htmlFor="contactNo"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Contact No
-        </label>
-        <input
-          type="tel"
-          id="contactNo"
-          name="contactNo"
-          value={formData.contactNo}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
-        />
-      </div>
       {addressFields.map(({ key, label }) => (
         <div key={key} className="space-y-1">
           <label
@@ -318,31 +361,16 @@ function ProfileEditForm({ userData, onSubmit, setIsEditing }) {
           type="submit"
           className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none"
         >
-          Save Changes
+          Update Address
         </button>
         <button
           type="button"
-          onClick={() => setIsEditing(false)}
+          onClick={onCancel}
           className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
         >
           Cancel
         </button>
       </div>
     </form>
-  );
-}
-
-function NavItem({ href, icon: Icon, tooltip, onClick }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link to={href} onClick={onClick} className="p-2">
-          <Icon className="h-6 w-6 text-gray-500" />
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
   );
 }

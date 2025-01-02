@@ -14,9 +14,20 @@ export function ProductCard({ product, onSelect, onAddToCart }) {
 
   return (
     <div
-      className="bg-white cursor-pointer rounded-lg overflow-hidden border"
-      onClick={() => onSelect(product)}
+      className={`bg-white  rounded-lg overflow-hidden border relative ${
+        product?.available ? "cursor-pointer" : "opacity-65 cursor-not-allowed"
+      }`}
+      onClick={() => {
+        if (product?.available) {
+          onSelect(product);
+        }
+      }}
     >
+      {!product?.available && (
+        <h2 className="absolute text-black font-bold z-50 top-1/2 text-center w-full -translate-y-1/2  text-balance text-base ">
+          Not Available
+        </h2>
+      )}
       <div className="relative">
         {Number(discount) > 0 && (
           <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
@@ -34,6 +45,7 @@ export function ProductCard({ product, onSelect, onAddToCart }) {
             size="sm"
             className="absolute -bottom-3 right-2"
             onClick={handleAddToCart}
+            disabled={!product?.available}
           >
             Add
           </Button>

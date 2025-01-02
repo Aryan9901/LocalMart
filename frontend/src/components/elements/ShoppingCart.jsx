@@ -186,17 +186,16 @@ const ShoppingCart = () => {
         netPrice: item.price,
       })),
     };
+    if (orderData?.items?.length < 1) {
+      toast.error("Cart is Empty! Try adding items to the cart");
+      return;
+    }
 
     const user = JSON.parse(localStorage.getItem("user"));
 
     const vendorId = VENDOR_ID;
     const userId = user.id;
     const addressId = address.id;
-
-    console.log(orderData);
-    console.log(vendorId);
-    console.log(userId);
-    console.log(addressId);
 
     try {
       const response = await axios.post(
@@ -215,9 +214,6 @@ const ShoppingCart = () => {
       console.log("Order submitted successfully", response.data);
       toast.success("Order placed successfully!");
       clearCart();
-      // navigate("/order-confirmation", {
-      //   state: { orderId: response.data.orderId },
-      // });
     } catch (error) {
       console.error("Error submitting order:", error);
       toast.error("Failed to place order. Please try again.");

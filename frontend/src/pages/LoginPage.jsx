@@ -34,7 +34,7 @@ export default function LoginPage() {
         <div className="grid min-h-screen items-stretch">
           {/* Left side / Mobile top */}
           <div className="relative px-6 py-3 flex items-center justify-center bg-[#F8FFF8] transition-all duration-300 ease-in-out">
-            <div className="w-full max-w-md mx-auto space-y-0">
+            <div className="w-full max-w-md mx-auto space-y-2">
               <h2 className="text-center text-xl font-bold">Login</h2>
               <div className="relative aspect-square w-full max-w-[150px] mx-auto">
                 <img
@@ -50,15 +50,12 @@ export default function LoginPage() {
           </div>
 
           {/* Right side - Login Form */}
-          <div className="py-4 px-5 flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
+          <div className=" my-0 pb-2 px-5 flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
             <div className="space-y-3 max-w-md mx-auto w-full">
-              <div className="text-center md:text-left space-y-2">
-                <h1 className="text-3xl font-bold text-[#3e803a]">
+              <div className="text-center md:text-left space-y-1">
+                <h1 className="text-2xl font-bold text-[#3e803a]">
                   Welcome to Subziwale
                 </h1>
-                <p className="text-lg text-gray-600">
-                  Your go-to app for all groceries
-                </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">

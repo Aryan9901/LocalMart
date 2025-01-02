@@ -22,6 +22,7 @@ import { ProductDrawer } from "@/components/elements/ProductDrawer";
 import Header from "@/components/elements/Header";
 import { useCart } from "@/hooks/useCart";
 import axios from "axios";
+import { VENDOR_ID } from "../constant/constant";
 
 export default function Dashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -70,11 +71,15 @@ export default function Dashboard() {
   const fetchProducts = async (controller) => {
     try {
       setLoading(true);
+      const vendorId = VENDOR_ID;
       const { data } = await axios.get(
         `${
           import.meta.env.VITE_API_URL
         }/rest/subziwale/api/v1/products?category=${activeTab}`,
         {
+          headers: {
+            "X-Vendor-Id": vendorId,
+          },
           signal: controller.signal,
         }
       );
@@ -107,7 +112,7 @@ export default function Dashboard() {
             className="w-full flex items-center justify-start text-gray-500 mb-2"
           >
             <Search className="mr-2 h-4 w-4" />
-            Search products...
+            Search (e.g. Aloo, Pyaaz, Apple, Milk, Paneer)
           </Button>
 
           <Tabs

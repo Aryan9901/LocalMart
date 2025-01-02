@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { VENDOR_ID } from "../../constant/constant";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -75,9 +76,13 @@ export default function PricingAvailability() {
   const fetchProducts = async (controller) => {
     try {
       setLoading(true);
+      const vendorId = VENDOR_ID;
       const { data } = await axios.get(
         `${API_URL}/rest/subziwale/api/v1/products?category=${selectedCategory}`,
         {
+          headers: {
+            "X-VENDOR-ID": vendorId,
+          },
           signal: controller.signal,
         }
       );
@@ -147,14 +152,21 @@ export default function PricingAvailability() {
       }));
 
     console.log("Changed products:", changedProducts);
-
+    const vendorId = VENDOR_ID;
     try {
-      const response = await axios.post(
-        `${API_URL}/update-products`,
-        changedProducts
+      const { data } = await axios.put(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/products/vendor`,
+        changedProducts,
+        {
+          headers: {
+            "X-Vendor-Id": vendorId,
+          },
+        }
       );
-      console.log("Changes saved successfully", response.data);
+      console.log("Changes saved successfully", data);
       setChangedItems(new Set());
+
+      // fetchProducts();
     } catch (error) {
       console.error("Error saving changes", error);
     }

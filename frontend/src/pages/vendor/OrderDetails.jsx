@@ -14,7 +14,6 @@ import {
   X,
   Plus,
   Minus,
-  PlusCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -69,6 +68,13 @@ export default function OrderDetails() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState([]);
+  const [editedItems, setEditedItems] = useState([]);
+  const [newItem, setNewItem] = useState({
+    productName: "",
+    quantity: 0,
+    unit: "",
+    netPrice: 0,
+  });
 
   const renderNavItem = (to, icon, label) => (
     <Tooltip>
@@ -83,27 +89,28 @@ export default function OrderDetails() {
     </Tooltip>
   );
 
+  const fetchOrderDetails = async () => {
+    const { id } = params;
+
+    try {
+      setLoading(true);
+      const { data } = await axios.get(
+        `${
+          import.meta.env.VITE_API_URL
+        }/rest/subziwale/api/v1/order/details?orderId=${id}`
+      );
+      console.log(data);
+
+      setOrder(data);
+      setEditedItems(data.items.map((item) => ({ ...item, edited: false })));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrderDetails = async () => {
-      const { id } = params;
-
-      try {
-        setLoading(true);
-        const { data } = await axios.get(
-          `${
-            import.meta.env.VITE_API_URL
-          }/rest/subziwale/api/v1/order/details?orderId=${id}`
-        );
-        console.log(data);
-
-        setOrder(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrderDetails();
   }, [params]);
 
@@ -145,19 +152,17 @@ export default function OrderDetails() {
   const handleCancelOrder = async () => {
     try {
       setLoading(true);
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/order/cancel`,
-        {
-          orderId: order.orderId,
-          reason: cancelReason,
-        }
-      );
-      const { data } = await axios.get(
+      await axios.put(
         `${
           import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/order/details?orderId=${order.orderId}`
+        }/rest/subziwale/api/v1/order/status?orderId=${
+          params?.id
+        }&status=Cancelled`,
+        {
+          cancellationReason: cancelReason,
+        }
       );
-      setOrder(data);
+      fetchOrderDetails();
     } catch (error) {
       console.error("Error cancelling order:", error);
     } finally {
@@ -169,22 +174,26 @@ export default function OrderDetails() {
   const handleRescheduleOrder = async () => {
     try {
       setLoading(true);
-      await axios.post(
+      console.log({
+        orderId: order.orderId,
+        newDate: format(rescheduleDate, "yyyy-MM-dd"),
+        newTimeSlot: selectedTimeSlot,
+      });
+
+      await axios.put(
         `${
           import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/order/reschedule`,
+        }/rest/subziwale/api/v1/order/status?orderId=${
+          params?.id
+        }&status=Rescheduled`,
         {
-          orderId: order.orderId,
-          newDate: format(rescheduleDate, "yyyy-MM-dd"),
-          newTimeSlot: selectedTimeSlot,
+          cancellationReason: cancelReason,
+          rescheduleDeliveryDate: format(rescheduleDate, "yyyy-MM-dd"),
+          rescheduleTimeSlot: selectedTimeSlot,
         }
       );
-      const { data } = await axios.get(
-        `${
-          import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/order/details?orderId=${order.orderId}`
-      );
-      setOrder(data);
+
+      fetchOrderDetails();
     } catch (error) {
       console.error("Error rescheduling order:", error);
     } finally {
@@ -193,23 +202,21 @@ export default function OrderDetails() {
     }
   };
 
-  const handleMarkDelivered = async () => {
+  const handleMarkDelivered = async (status) => {
+    console.log(status);
+
     try {
       setLoading(true);
-      await axios.post(
+      await axios.put(
         `${
           import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/order/mark-delivered`,
-        {
-          orderId: order.orderId,
-        }
+        }/rest/subziwale/api/v1/order/status?orderId=${
+          params?.id
+        }&status=${status}`,
+        {}
       );
-      const { data } = await axios.get(
-        `${
-          import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/order/details?orderId=${order.orderId}`
-      );
-      setOrder(data);
+
+      fetchOrderDetails();
     } catch (error) {
       console.error("Error marking order as delivered:", error);
     } finally {
@@ -218,17 +225,66 @@ export default function OrderDetails() {
   };
 
   const handleBuyAgain = () => {
-    // Implement buy again logic here
     console.log("Buy Again clicked for order items:", order.items);
+  };
+
+  const handleQuantityChange = (index, change) => {
+    const newItems = editedItems.map((item, i) => {
+      if (i === index) {
+        return {
+          ...item,
+          quantity: Math.max(0, item.quantity + change),
+          edited: true,
+        };
+      }
+      return { ...item, edited: true };
+    });
+    setEditedItems(newItems);
+  };
+
+  const handleAddNewItem = () => {
+    setEditedItems(
+      editedItems
+        .map((item) => ({ ...item, edited: true }))
+        .concat({ ...newItem, edited: true })
+    );
+    setNewItem({ productName: "", quantity: 0, unit: "", netPrice: 0 });
+  };
+
+  const handleSubmitChanges = async () => {
+    try {
+      setLoading(true);
+      // Log all items, regardless of whether they've been edited
+      console.log("All items:", editedItems);
+      console.log("Order details:", order);
+
+      const updatedOrderData = {
+        ...order,
+        items: editedItems,
+        note: order?.note || "hii",
+      };
+
+      console.log("updated order", updatedOrderData);
+
+      const changedItems = editedItems.filter((item) => item.edited);
+      if (changedItems.length > 0) {
+        const { data } = await axios.put(
+          `${
+            import.meta.env.VITE_API_URL
+          }/rest/subziwale/api/v1/order?orderId=${params?.id}`,
+          updatedOrderData
+        );
+        fetchOrderDetails();
+      }
+    } catch (error) {
+      console.error("Error updating order:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="loader"></div>
-        </div>
-      )}
       <header className="sticky top-0 z-10 bg-white px-4 py-3 shadow-sm">
         <div className="flex items-center gap-4">
           <Button
@@ -243,206 +299,297 @@ export default function OrderDetails() {
           <UserMenu />
         </div>
       </header>
+      {loading && (
+        <div className="inset-0  flex items-center justify-center z-50">
+          <div className="loader"></div>
+        </div>
+      )}
 
-      <main className="mx-auto mb-16 max-w-lg space-y-4 p-4">
-        {order && (
-          <>
-            <section className="rounded-lg bg-white p-4">
-              <h2 className="mb-4 font-medium">Order Items</h2>
-              <div className="space-y-4">
-                {order.items.map((item, index) => (
-                  <div
-                    key={item.inventoryId + "-" + index}
-                    className="flex items-center gap-3"
-                  >
-                    <img
-                      src={item.productImageUrl}
-                      alt={item.productName}
-                      className="rounded-md w-16 h-16 object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/placeholder.svg?height=64&width=64";
-                      }}
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium text-sm">
-                        {item.productName}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        ₹ {item.netPrice} per {item.unit}
-                      </p>
+      {!loading && (
+        <main className="mx-auto mb-16 max-w-lg space-y-4 p-4">
+          {order && (
+            <>
+              <section className="rounded-lg bg-white p-4">
+                <h2 className="mb-4 flex items-center justify-between font-medium">
+                  Order Items{" "}
+                  {localStorage.getItem("userRole") === "vendor" && (
+                    <Button
+                      onClick={handleAddNewItem}
+                      className="text-black bg-white border border-black py-0 px-3 text-sm leading-4"
+                    >
+                      Add Item
+                    </Button>
+                  )}
+                </h2>
+                <div className="space-y-4">
+                  {editedItems.map((item, index) => (
+                    <div
+                      key={item.inventoryId + "-" + index}
+                      className="flex items-center gap-3"
+                    >
+                      <img
+                        src={item.productImageUrl}
+                        alt={item.productName}
+                        className="rounded-md w-16 h-16 object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/placeholder.svg?height=64&width=64";
+                        }}
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm">
+                          {item.productName}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          ₹ {item.netPrice} per {item.unit}
+                        </p>
+                      </div>
+                      {localStorage.getItem("userRole") === "vendor" && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => handleQuantityChange(index, -1)}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="text-sm font-medium">
+                            {item.quantity}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => handleQuantityChange(index, 1)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                      <div className="text-right">
+                        <p className="font-medium text-sm">
+                          {item.quantity} {item.unit}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          ₹ {item.netPrice * item.quantity}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium text-sm">
-                        {item.quantity} {item.unit}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        ₹ {item.netPrice * item.quantity}
-                      </p>
-                    </div>
+                  ))}
+                </div>
+                {localStorage.getItem("userRole") === "vendor" && (
+                  <div className="mt-4 space-y-2">
+                    {editedItems.some((item) => item.edited) && (
+                      <Button
+                        onClick={handleSubmitChanges}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        Save Changes
+                      </Button>
+                    )}
                   </div>
-                ))}
-              </div>
-            </section>
+                )}
+              </section>
 
-            <section className="rounded-lg bg-white p-4">
-              <h2 className="mb-4 font-medium">Order Summary</h2>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">MRP Total</span>
-                  <span>₹ {order.mrp}</span>
+              <section className="rounded-lg bg-white p-4">
+                <h2 className="mb-4 font-medium">Order Summary</h2>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">MRP Total</span>
+                    <span>₹ {order.mrp}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Discount</span>
+                    <span className="text-green-600">- ₹ {order.discount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Platform Fees</span>
+                    <span>₹ {order.platformFees}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Delivery Charges</span>
+                    <span>₹ {order.deliveryCharges}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 font-medium">
+                    <span>TOTAL</span>
+                    <span>₹ {order.total}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Discount</span>
-                  <span className="text-green-600">- ₹ {order.discount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Platform Fees</span>
-                  <span>₹ {order.platformFees}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Delivery Charges</span>
-                  <span>₹ {order.deliveryCharges}</span>
-                </div>
-                <div className="flex justify-between border-t pt-2 font-medium">
-                  <span>TOTAL</span>
-                  <span>₹ {order.total}</span>
-                </div>
-              </div>
-            </section>
+              </section>
 
-            <section className="rounded-lg bg-white p-4">
-              <h2 className="mb-4 font-medium">Delivery Details</h2>
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <MapPin className="h-5 w-5 shrink-0 text-gray-500" />
-                  <p className="text-sm text-gray-600">
-                    {order.deliveryAddress}
-                  </p>
+              <section className="rounded-lg bg-white p-4">
+                <h2 className="mb-4 font-medium">Delivery Details</h2>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <MapPin className="h-5 w-5 shrink-0 text-gray-500" />
+                    <p className="text-sm text-gray-600">
+                      {order.deliveryAddress}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Phone className="h-5 w-5 shrink-0 text-gray-500" />
+                    <p className="text-sm text-gray-600">{order.contactNo}</p>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Phone className="h-5 w-5 shrink-0 text-gray-500" />
-                  <p className="text-sm text-gray-600">{order.contactNo}</p>
-                </div>
-              </div>
-            </section>
+              </section>
 
-            <section className="rounded-lg bg-white p-4">
-              <h2 className="mb-4 font-medium">Order Status</h2>
-              <p className="text-sm text-gray-600">
-                Status:{" "}
-                <span
-                  className={`font-medium text-${
-                    order.status === "Completed" ? "green" : "blue"
-                  }-500`}
-                >
-                  {order.status}
-                </span>
-              </p>
-              <p className="text-sm text-gray-600">
-                Date:{" "}
-                <span className="font-medium">
-                  {format(new Date(order.deliveryDate), "PPP")}
-                </span>
-              </p>
-              <p className="text-sm text-gray-600">
-                Time Slot:{" "}
-                <span className="font-medium">
-                  {!order?.expressDelivery
-                    ? order?.timeSlot
-                      ? formatTimeSlot(order?.timeSlot)
-                      : "Not Given"
-                    : "Express Delivery"}
-                </span>
-              </p>
-            </section>
-          </>
-        )}
-
-        {localStorage.getItem("userRole") === "vendor" ? (
-          <footer className="bg-white p-4">
-            {!order?.expressDelivery ? (
-              <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
-                <Button
-                  className="bg-red-600 w-1/3 hover:bg-red-500"
-                  onClick={() => setIsCancelModalOpen(true)}
-                  disabled={
-                    !canRequestCancellation || order?.status !== "Pending"
-                  }
-                >
-                  Cancel Order
-                </Button>
-                <Button
-                  className="bg-blue-600 w-1/3 hover:bg-blue-700"
-                  onClick={() => setIsRescheduleModalOpen(true)}
-                  disabled={!canReschedule || order?.status !== "Pending"}
-                >
-                  Reschedule
-                </Button>
-                <Button
-                  className="bg-green-600 w-1/3 hover:bg-green-700"
-                  onClick={handleMarkDelivered}
-                  disabled={order?.status === "Completed"}
-                >
-                  Mark Delivered
-                </Button>
-              </div>
-            ) : (
-              <h4 className="text-center text-balance text-base text-red-400">
-                Express Order Can't be Rescheduled or Cancelled
-              </h4>
-            )}
-          </footer>
-        ) : (
-          <footer className="bg-white p-4">
-            <div className="">
-              {order?.expressDelivery ? (
-                <div>
-                  <Button
-                    className="bg-green-600 w-1/3 hover:bg-green-700"
-                    onClick={handleBuyAgain}
+              <section className="rounded-lg bg-white p-4">
+                <h2 className="mb-4 font-medium">Order Status</h2>
+                <p className="text-sm text-gray-600">
+                  Status:{" "}
+                  <span
+                    className={`font-medium text-${
+                      order.status === "Completed" ? "green" : "blue"
+                    }-500`}
                   >
-                    Buy Again
+                    {order.status}
+                  </span>
+                  <span className="ml-2 text-red-600">
+                    {order?.status === "Completed" && "(Payment Due)"}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Date:{" "}
+                  <span className="font-medium">
+                    {format(new Date(order.deliveryDate), "PPP")}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Time Slot:{" "}
+                  <span className="font-medium">
+                    {!order?.expressDelivery
+                      ? order?.timeSlot
+                        ? formatTimeSlot(order?.timeSlot)
+                        : "Not Given"
+                      : "Express Delivery"}
+                  </span>
+                </p>
+              </section>
+            </>
+          )}
+
+          {localStorage.getItem("userRole") === "vendor" ? (
+            <footer
+              className={`bg-white p-4 ${
+                order?.status === "Paid" ||
+                (order?.status === "Cancelled" && "hidden")
+              }`}
+            >
+              {!order?.expressDelivery && order?.status === "Pending" ? (
+                <div className="mx-auto flex max-w-lg gap-2 items-center justify-between">
+                  <Button
+                    className="bg-red-600 py-1 leading-5 px-4 rounded-md w-1/3 hover:bg-red-500"
+                    onClick={() => setIsCancelModalOpen(true)}
+                    disabled={
+                      !canRequestCancellation || order?.status !== "Pending"
+                    }
+                  >
+                    Cancel Order
                   </Button>
+                  <Button
+                    className="bg-blue-600 py-1 leading-5 px-4 rounded-md w-1/3 hover:bg-blue-700"
+                    onClick={() => setIsRescheduleModalOpen(true)}
+                    disabled={!canReschedule || order?.status !== "Pending"}
+                  >
+                    Reschedule
+                  </Button>
+                  {order?.status !== "Completed" && (
+                    <Button
+                      className="bg-green-600 py-1 leading-5 px-4 rounded-md w-1/3 hover:bg-green-700 text-white"
+                      onClick={() => handleMarkDelivered("Completed")}
+                      disabled={order?.status === "Completed"}
+                    >
+                      Mark Delivered
+                    </Button>
+                  )}
                 </div>
               ) : (
-                <div className="w-full gap-2 flex items-center justify-center">
-                  {canRequestCancellation && order?.status === "Pending" && (
-                    <Button
-                      className="bg-red-600 w-1/3 hover:bg-red-500"
-                      onClick={() => setIsCancelModalOpen(true)}
-                    >
-                      Cancel Order
-                    </Button>
-                  )}
-                  {canReschedule && order?.status === "Pending" && (
-                    <Button
-                      className="bg-blue-600 w-1/3  hover:bg-blue-700"
-                      onClick={() => setIsRescheduleModalOpen(true)}
-                    >
-                      Reschedule
-                    </Button>
-                  )}
-                  <Button
-                    className="bg-green-600 w-1/3 hover:bg-green-700"
-                    onClick={handleBuyAgain}
+                <div className={`flex items-center gap-3`}>
+                  <h4
+                    className={` text-balance  text-red-400 ${
+                      order?.status !== "Completed"
+                        ? "text-left text-sm"
+                        : "text-center text-base hidden"
+                    }`}
                   >
-                    Buy Again
-                  </Button>
+                    Express Order Can't be Rescheduled or Cancelled
+                  </h4>
+
+                  {order?.status != "Paid" && (
+                    <>
+                      {order?.status !== "Completed" ? (
+                        <Button
+                          className="bg-green-600 py-1 leading-5 px-4 rounded-md w-1/3 text-white hover:bg-green-700"
+                          onClick={() => handleMarkDelivered("Completed")}
+                          disabled={order?.status === "Completed"}
+                        >
+                          Mark Delivered
+                        </Button>
+                      ) : (
+                        <Button
+                          className="bg-blue-500 hover:bg-blue-500 py-2 leading-4 px-4 rounded-md  w-1/3 text-wrap text-white"
+                          onClick={() => handleMarkDelivered("Paid")}
+                        >
+                          Complete Payment
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
-            </div>
-            {!canRequestCancellation &&
-              !canReschedule &&
-              order?.status === "Pending" && (
-                <p className="text-sm text-red-500 mt-2 text-center">
-                  Cancellation and rescheduling are no longer available for this
-                  order.
-                </p>
-              )}
-          </footer>
-        )}
-      </main>
+            </footer>
+          ) : (
+            <footer
+              className={`bg-white p-4 ${order?.status === "Paid" && "hidden"}`}
+            >
+              <div className="">
+                {order?.expressDelivery ? (
+                  <div>
+                    <Button
+                      className="bg-green-600 w-1/3 hover:bg-green-700"
+                      onClick={handleBuyAgain}
+                    >
+                      Buy Again
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-full gap-2 flex items-center justify-center">
+                    {canRequestCancellation && order?.status === "Pending" && (
+                      <Button
+                        className="bg-red-600 w-1/3 hover:bg-red-500"
+                        onClick={() => setIsCancelModalOpen(true)}
+                      >
+                        Cancel Order
+                      </Button>
+                    )}
+                    {canReschedule && order?.status === "Pending" && (
+                      <Button
+                        className="bg-blue-600 w-1/3  hover:bg-blue-700"
+                        onClick={() => setIsRescheduleModalOpen(true)}
+                      >
+                        Reschedule
+                      </Button>
+                    )}
+                    <Button
+                      className="bg-green-600 w-1/3 hover:bg-green-700"
+                      onClick={handleBuyAgain}
+                    >
+                      Buy Again
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {!canRequestCancellation &&
+                !canReschedule &&
+                order?.status === "Pending" && (
+                  <p className="text-sm text-red-500 mt-2 text-center">
+                    Cancellation and rescheduling are no longer available for
+                    this order.
+                  </p>
+                )}
+            </footer>
+          )}
+        </main>
+      )}
 
       {isCancelModalOpen && (
         <div className="fixed inset-0 max-w-sm mx-auto bg-black bg-opacity-50 flex items-center justify-center p-4">

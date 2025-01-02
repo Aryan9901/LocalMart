@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/elements/ProductCard";
 import { ProductDrawer } from "@/components/elements/ProductDrawer";
 import { useCart } from "@/hooks/useCart";
 import axios from "axios";
+import { VENDOR_ID } from "../../constant/constant";
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,11 +33,17 @@ export default function SearchPage() {
     try {
       setLoading(true);
       const categories = ["Vegetables", "Fruits", "Dairy"];
+      const vendorId = VENDOR_ID;
       const productPromises = categories.map((category) =>
         axios.get(
           `${
             import.meta.env.VITE_API_URL
-          }/rest/subziwale/api/v1/products?category=${category}`
+          }/rest/subziwale/api/v1/products?category=${category}`,
+          {
+            headers: {
+              "X-Vendor-Id": vendorId,
+            },
+          }
         )
       );
       const responses = await Promise.all(productPromises);

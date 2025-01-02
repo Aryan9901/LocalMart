@@ -92,10 +92,15 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
                   key={variant.inventoryId}
                   className="flex items-center justify-between border rounded-lg p-2"
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex flex-col  items-start justify-start">
                     <span className="text-sm font-medium">
                       {variant.variant} {variant.unit}
                     </span>
+                    {localStorage.getItem("userRole") === "user" && (
+                      <p className="text-xs text-gray-400">
+                        Net Price: {variant.netPrice}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {localStorage.getItem("userRole") === "user" && (
@@ -111,10 +116,12 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
                         <Minus className="h-4 w-4" />
                       </Button>
                     )}
-                    <span className="w-8 text-center">
-                      {quantities[variant.inventoryId] || 0}
-                    </span>
                     {localStorage.getItem("userRole") === "user" && (
+                      <span className="w-8 text-center">
+                        {quantities[variant.inventoryId] || 0}
+                      </span>
+                    )}
+                    {localStorage.getItem("userRole") === "user" ? (
                       <Button
                         variant="outline"
                         size="icon"
@@ -125,6 +132,10 @@ export function ProductDrawer({ product, isOpen, onClose, onAddToCart }) {
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
+                    ) : (
+                      <p className="text-base text-black">
+                        Net Price: {variant.netPrice}
+                      </p>
                     )}
                   </div>
                 </div>
