@@ -532,12 +532,20 @@ const ShoppingCart = () => {
                 <p>{`${address?.addressLineOne || ""} ${
                   address?.addressLineTwo || ""
                 } ${address?.city || ""} ${address?.district || ""} ${
-                  address?.country || ""
-                } ${address?.pinCode || ""}`}</p>
+                  address?.state || ""
+                } ${address?.country || ""} ${address?.pinCode || ""} ${
+                  !address?.addressLineOne &&
+                  !address?.addressLineTwo &&
+                  !address?.city &&
+                  !address?.country &&
+                  !address?.state &&
+                  !address?.pinCode &&
+                  "Not Provided"
+                }`}</p>
               </div>
               <div className="flex items-center">
                 <Phone className="w-5 h-5 mr-2" />
-                <p>{address?.contactNo}</p>
+                <p>{address?.contactNo || "Not Provided"}</p>
               </div>
             </>
           )}

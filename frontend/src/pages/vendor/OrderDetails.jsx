@@ -406,12 +406,14 @@ export default function OrderDetails() {
                   <div className="flex gap-3">
                     <MapPin className="h-5 w-5 shrink-0 text-gray-500" />
                     <p className="text-sm text-gray-600">
-                      {order.deliveryAddress}
+                      {order?.deliveryAddress || "Not Provided"}
                     </p>
                   </div>
                   <div className="flex gap-3">
                     <Phone className="h-5 w-5 shrink-0 text-gray-500" />
-                    <p className="text-sm text-gray-600">{order.contactNo}</p>
+                    <p className="text-sm text-gray-600">
+                      {order?.contactNo || "Not Provided"}
+                    </p>
                   </div>
                 </div>
               </section>
