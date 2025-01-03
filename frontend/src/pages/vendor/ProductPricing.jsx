@@ -356,7 +356,7 @@ export default function PricingAvailability() {
       </div>
 
       <TooltipProvider>
-        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white  shadow-lg border-t z-20">
           {renderNavItem(
             "/vendor",
             <ShoppingBag className="h-6 w-6 text-gray-500" />,

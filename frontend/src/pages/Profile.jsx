@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-toastify";
 import {
   ShoppingBag,
   Store,
@@ -67,7 +67,6 @@ export default function Profile() {
   const [userData, setUserData] = useState(getUserData());
   const [address, setAddress] = useState({});
   const [isEditing, setIsEditing] = useState(false);
-  const { toast } = useToast();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -296,7 +295,6 @@ function NavItem({ href, icon: Icon, tooltip, onClick }) {
 
 function AddressEditForm({ address, onCancel, onSuccess }) {
   const [formData, setFormData] = useState(address);
-  const { toast } = useToast();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -312,7 +310,7 @@ function AddressEditForm({ address, onCancel, onSuccess }) {
     const userId = user.id;
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      const { data } = await axios.put(
+      const { data } = await axios.post(
         `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
         formData,
         {
@@ -322,11 +320,8 @@ function AddressEditForm({ address, onCancel, onSuccess }) {
           },
         }
       );
-      toast.success({
-        title: "Address Updated",
-        description: "Your address has been successfully updated.",
-      });
-      // onSuccess(data);
+      toast.success("Address Updated successfully");
+      onSuccess(data);
       fetchAddress();
     } catch (error) {
       console.error(error);

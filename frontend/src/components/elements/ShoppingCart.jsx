@@ -382,6 +382,7 @@ const ShoppingCart = () => {
                   <p className="text-sm text-gray-500">
                     {item.variant.variant} {item.variant.unit}
                   </p>
+                  <span className="px-2">{item.quantity}</span>
                 </div>
               </div>
               <div className="flex items-center">

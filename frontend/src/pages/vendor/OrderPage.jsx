@@ -59,6 +59,52 @@ function OrderCard({ order, onPaymentDone }) {
     }
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const time = date.toLocaleString("en-US", {
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+
+    return `${month} ${day} ${year}`;
+    // return `${month} ${day} ${year} ${time}`;
+  };
+
+  const formatTimeSlot = (timeSlot) => {
+    if (!timeSlot) return "Time slot not available";
+
+    const [start, end] = timeSlot.split("-");
+    const formatTime = (time) => {
+      if (!time) return "N/A";
+      const [hours, minutes] = time.split(":");
+      const date = new Date(2000, 0, 1, hours, minutes);
+      return date.toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    };
+    return `${formatTime(start)} to ${formatTime(end)}`;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -85,7 +131,7 @@ function OrderCard({ order, onPaymentDone }) {
             <p className="font-medium text-gray-900">{order.customerName}</p>
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <span className="h-4 w-4">🕒</span>
-              {new Date(order.orderDate).toLocaleString()}
+              {formatDate(order.orderDate)}
             </div>
           </div>
         </div>
@@ -115,7 +161,12 @@ function OrderCard({ order, onPaymentDone }) {
       <div className="mt-4 flex items-center justify-between">
         <div className="text-sm font-medium">
           Status:{" "}
-          <span className={getStatusColor(order.status)}>{order.status}</span>
+          <span className={getStatusColor(order.status)}>
+            {order.status}{" "}
+            {order.status === "Completed" && (
+              <span className="text-red-500">(Payment Due)</span>
+            )}
+          </span>
         </div>
         {order.status === "PaymentPending" && (
           <Button
@@ -136,7 +187,10 @@ function OrderCard({ order, onPaymentDone }) {
         )}
       </div>
       <div className="mt-2 text-sm text-gray-600">
-        Delivery: {order.deliveryDate} {order.timeSlot}
+        Delivery: {formatDate(order.deliveryDate)}{" "}
+        {order.timeSlot
+          ? formatTimeSlot(order.timeSlot)
+          : "Time slot not available"}
       </div>
     </motion.div>
   );
@@ -189,7 +243,7 @@ export default function OrderPage() {
       );
       console.log(data);
 
-      setOrders(sortOrders(data));
+      setOrders(data);
     } catch (error) {
       console.error(error);
       setError("Failed to fetch orders. Please try again.");
@@ -226,7 +280,7 @@ export default function OrderPage() {
 
   return (
     <div className="min-h-screen sm:border-l sm:border-r bg-gray-50 pb-20">
-      <div className="flex items-center justify-between px-4 py-4 bg-white border-b sticky top-0 z-10">
+      <div className="flex items-center justify-between px-4 py-4 bg-white border-b  z-10">
         <Link to="/">
           <img src="/images/logo.png" alt="Logo" className="w-20" />
         </Link>
@@ -244,7 +298,7 @@ export default function OrderPage() {
         }}
         className="w-full flex flex-col"
       >
-        <TabsList className="w-full justify-start h-12 p-0 bg-white border-b rounded-none sticky top-12 z-10 flex-shrink-0">
+        <TabsList className="w-full justify-start h-12 p-0 bg-white border-b rounded-none sticky top-0 z-10 flex-shrink-0">
           <TabsTrigger
             value="Pending"
             className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none transition-colors"
@@ -299,7 +353,7 @@ export default function OrderPage() {
       </Tabs>
 
       <TooltipProvider>
-        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white  shadow-lg border-t z-20">
           <Tooltip>
             <TooltipTrigger asChild>
               <Link to="/vendor" className="p-2">
