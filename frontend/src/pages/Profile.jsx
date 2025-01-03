@@ -1,4 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 import {
   Card,
   CardContent,
@@ -6,142 +9,61 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { toast } from "react-toastify";
 import {
+  ChevronLeft,
+  User,
   ShoppingBag,
   Store,
   Package,
   Phone,
-  User,
   History,
   ShoppingCart,
-  ChevronDown,
-  ChevronLeft,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
 
-const getUserData = () => {
-  const storedData = localStorage.getItem("user");
-  if (storedData) {
-    try {
-      const parsedData = JSON.parse(storedData);
-      return {
-        id: parsedData.id,
-        name: parsedData.name,
-        emailId: parsedData.emailId,
-        contactNo: parsedData.contactNo,
-        userType: parsedData.userType,
-        house: "",
-        area: "",
-        pincode: "",
-        district: "",
-        state: "",
-      };
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-    }
-  }
-  return {
-    id: "",
-    name: "",
-    emailId: "",
-    contactNo: "",
-    userType: "",
-    house: "",
-    area: "",
-    pincode: "",
-    district: "",
-    state: "",
-  };
-};
-
-export default function Profile() {
+const Profile = () => {
   const [userData, setUserData] = useState(getUserData());
-  const [address, setAddress] = useState({});
+  const [address, setAddress] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedData = localStorage.getItem("userAttachment");
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        setUserData((prevData) => ({
-          ...prevData,
-          ...parsedData,
-        }));
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
-    }
+    fetchAddress();
   }, []);
 
-  const fetchAddress = async (type, id) => {
+  const fetchAddress = async () => {
     try {
-      if (type === "vendor") {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
-          {
-            headers: {
-              "X-Vendor-Id": id,
-            },
-          }
-        );
-        // console.log(data);
-        setAddress(data[0]);
-      } else {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
-          {
-            headers: {
-              "X-User-Id": id,
-            },
-          }
-        );
-        // console.log(data);
-        setAddress(data[0]);
-      }
+      const user = JSON.parse(localStorage.getItem("user"));
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
+        {
+          headers: {
+            "X-User-Id": user.id,
+          },
+        }
+      );
+      setAddress(data[0] || null);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching address:", error);
+      toast.error("Failed to fetch address. Please try again.");
     }
   };
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const userType = user.userType;
-    const id = user.id;
-    // console.log(userType, id);
-
-    fetchAddress(userType, id);
-  }, []);
-
-  function onSubmit(values) {
-    setUserData(values);
-    localStorage.setItem("userAttachment", JSON.stringify(values));
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
-    });
-    setIsEditing(false);
-  }
-
-  function handleLogout() {
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
+  const handleLogout = () => {
+    toast.success("You have been successfully logged out.");
     logout();
     navigate("/login");
-  }
+  };
 
   return (
     <div className="flex flex-col max-w-sm mx-auto sm:border-l sm:border-r min-h-screen">
@@ -169,20 +91,21 @@ export default function Profile() {
                 : "View your profile information below."}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-0 ">
+          <CardContent className="pt-0">
             {isEditing ? (
               <AddressEditForm
                 address={address}
                 onCancel={() => setIsEditing(false)}
                 onSuccess={(updatedAddress) => {
-                  // setAddress(updatedAddress);
+                  setAddress(updatedAddress);
                   setIsEditing(false);
+                  fetchAddress();
                 }}
               />
             ) : (
               <ProfileView
-                address={address}
                 userData={userData}
+                address={address}
                 setIsEditing={setIsEditing}
                 handleLogout={handleLogout}
               />
@@ -191,41 +114,12 @@ export default function Profile() {
         </Card>
       </main>
 
-      {userData.userType === "vendor" && (
-        <TooltipProvider>
-          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
-            <NavItem href="/vendor" icon={ShoppingBag} tooltip="My Orders" />
-            <NavItem href="/vendor/store" icon={Store} tooltip="My Store" />
-            <NavItem
-              href="/vendor/product/pricing"
-              icon={Package}
-              tooltip="My Products"
-            />
-            <NavItem href="#" icon={Phone} tooltip="Support" />
-          </nav>
-        </TooltipProvider>
-      )}
-      {userData.userType === "user" && (
-        <TooltipProvider>
-          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
-            <NavItem href="/history" icon={History} tooltip="My Orders" />
-            <NavItem href="/" icon={Store} tooltip="Store" />
-            <NavItem href="/cart" icon={ShoppingCart} tooltip="My Cart" />
-            <NavItem
-              onClick={() => {
-                window.open(`tel:+919899784200}`);
-              }}
-              icon={Phone}
-              tooltip="Support"
-            />
-          </nav>
-        </TooltipProvider>
-      )}
+      <BottomNavigation userType={userData.userType} />
     </div>
   );
-}
+};
 
-function ProfileView({ userData, address, setIsEditing, handleLogout }) {
+const ProfileView = ({ userData, address, setIsEditing, handleLogout }) => {
   const addressFields = [
     { key: "addressLineOne", label: "House No / Flat / Floor / Building" },
     { key: "addressLineTwo", label: "Locality / Area / Sector" },
@@ -237,7 +131,7 @@ function ProfileView({ userData, address, setIsEditing, handleLogout }) {
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1">
           <p className="text-sm font-medium text-gray-500">Name</p>
@@ -251,50 +145,40 @@ function ProfileView({ userData, address, setIsEditing, handleLogout }) {
           <p className="text-sm font-medium text-gray-500">Contact No</p>
           <p className="text-base">{userData.contactNo}</p>
         </div>
-        {addressFields.map(({ key, label }) => (
-          <div key={key} className="space-y-1">
-            <p className="text-sm font-medium text-gray-500">{label}</p>
-            <p className="text-base">
-              {address && address[key] ? address[key] : "Not provided"}
-            </p>
-          </div>
-        ))}
+        {address &&
+          addressFields.map(({ key, label }) => (
+            <div key={key} className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">{label}</p>
+              <p className="text-base">{address[key] || "Not provided"}</p>
+            </div>
+          ))}
+        {/* {!address && <div>Address : Not Provided</div>} */}
       </div>
       <div className="flex gap-4">
-        <button
-          onClick={() => setIsEditing(true)}
-          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-        >
-          Update Address
-        </button>
-        <button
-          onClick={handleLogout}
-          className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-        >
+        <Button onClick={() => setIsEditing(true)} className="flex-1">
+          {address ? "Update Address" : "Add Address"}
+        </Button>
+        <Button onClick={handleLogout} variant="destructive" className="flex-1">
           Logout
-        </button>
+        </Button>
       </div>
     </div>
   );
-}
+};
 
-function NavItem({ href, icon: Icon, tooltip, onClick }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link to={href} onClick={onClick} className="p-2">
-          <Icon className="h-6 w-6 text-gray-500" />
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
+const AddressEditForm = ({ address, onCancel, onSuccess }) => {
+  const [formData, setFormData] = useState(
+    address || {
+      addressLineOne: "",
+      addressLineTwo: "",
+      city: "",
+      pinCode: "",
+      district: "",
+      state: "",
+      country: "",
+      contactNo: "",
+    }
   );
-}
-
-function AddressEditForm({ address, onCancel, onSuccess }) {
-  const [formData, setFormData] = useState(address);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -308,8 +192,10 @@ function AddressEditForm({ address, onCancel, onSuccess }) {
     e.preventDefault();
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user.id;
+    formData.type = "home";
+    console.log(formData);
+
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
       const { data } = await axios.post(
         `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
         formData,
@@ -320,16 +206,13 @@ function AddressEditForm({ address, onCancel, onSuccess }) {
           },
         }
       );
-      toast.success("Address Updated successfully");
+      toast.success(
+        address ? "Address updated successfully" : "Address added successfully"
+      );
       onSuccess(data);
-      fetchAddress();
     } catch (error) {
       console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to update address. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to update address. Please try again.");
     }
   };
 
@@ -337,8 +220,8 @@ function AddressEditForm({ address, onCancel, onSuccess }) {
     { key: "addressLineOne", label: "Address Line 1" },
     { key: "addressLineTwo", label: "Address Line 2" },
     { key: "city", label: "City" },
-    { key: "pinCode", label: "Pin Code" },
     { key: "district", label: "District" },
+    { key: "pinCode", label: "Pin Code" },
     { key: "state", label: "State" },
     { key: "country", label: "Country" },
     { key: "contactNo", label: "Contact No" },
@@ -348,37 +231,112 @@ function AddressEditForm({ address, onCancel, onSuccess }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {addressFields.map(({ key, label }) => (
         <div key={key} className="space-y-1">
-          <label
-            htmlFor={key}
-            className="block text-sm font-medium text-gray-700"
-          >
+          <Label className="relative" htmlFor={key}>
             {label}
-          </label>
-          <input
+            {key !== "addressLineTwo" && key !== "district" && (
+              <span className="absolute -right-2 text-red-500 top-0">*</span>
+            )}
+          </Label>
+          <Input
             type="text"
             id={key}
             name={key}
             value={formData[key]}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-1 pl-2 focus:border-blue-500 focus:border"
+            required={key !== "addressLineTwo" && key !== "district"}
+            className="focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-green-600"
           />
         </div>
       ))}
       <div className="flex gap-4">
-        <button
-          type="submit"
-          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none"
-        >
-          Update Address
-        </button>
-        <button
+        <Button type="submit" className="flex-1">
+          {address ? "Update Address" : "Add Address"}
+        </Button>
+        <Button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+          variant="outline"
+          className="flex-1"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
-}
+};
+
+const BottomNavigation = ({ userType }) => {
+  return (
+    <TooltipProvider>
+      <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white shadow-lg border-t z-20">
+        {userType === "vendor" ? (
+          <>
+            <NavItem href="/vendor" icon={ShoppingBag} tooltip="My Orders" />
+            <NavItem href="/vendor/store" icon={Store} tooltip="My Store" />
+            <NavItem
+              href="/vendor/product/pricing"
+              icon={Package}
+              tooltip="My Products"
+            />
+            <NavItem href="#" icon={Phone} tooltip="Support" />
+          </>
+        ) : (
+          <>
+            <NavItem href="/history" icon={History} tooltip="My Orders" />
+            <NavItem href="/" icon={Store} tooltip="Store" />
+            <NavItem href="/cart" icon={ShoppingCart} tooltip="My Cart" />
+            <NavItem
+              onClick={() => {
+                window.open(`tel:+919899784200`);
+              }}
+              icon={Phone}
+              tooltip="Support"
+            />
+          </>
+        )}
+      </nav>
+    </TooltipProvider>
+  );
+};
+
+const NavItem = ({ href, icon: Icon, tooltip, onClick }) => {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link to={href} onClick={onClick} className="p-2">
+          <Icon className="h-6 w-6 text-gray-500" />
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{tooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
+const getUserData = () => {
+  const storedData = localStorage.getItem("user");
+  if (storedData) {
+    try {
+      const parsedData = JSON.parse(storedData);
+      return {
+        id: parsedData.id,
+        name: parsedData.name,
+        emailId: parsedData.emailId,
+        contactNo: parsedData.contactNo,
+        userType: parsedData.userType,
+      };
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+    }
+  }
+  return {
+    id: "",
+    name: "",
+    emailId: "",
+    contactNo: "",
+    userType: "",
+  };
+};
+
+export default Profile;
