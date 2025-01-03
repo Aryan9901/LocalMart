@@ -129,6 +129,14 @@ function OrderCard({ order, onPaymentDone }) {
             Payment Done
           </Button>
         )}
+        {order.expressDelivery && (
+          <span className="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+            Express
+          </span>
+        )}
+      </div>
+      <div className="mt-2 text-sm text-gray-600">
+        Delivery: {order.deliveryDate} {order.timeSlot}
       </div>
     </motion.div>
   );
@@ -150,6 +158,19 @@ export default function OrderPage() {
     );
   };
 
+  const sortOrders = (orders) => {
+    return orders.sort((a, b) => {
+      // First, sort by expressDelivery
+      if (a.expressDelivery && !b.expressDelivery) return -1;
+      if (!a.expressDelivery && b.expressDelivery) return 1;
+
+      // Then, sort by delivery date and time slot
+      const dateA = new Date(`${a.deliveryDate}T${a.timeSlot.split("-")[0]}`);
+      const dateB = new Date(`${b.deliveryDate}T${b.timeSlot.split("-")[0]}`);
+      return dateA - dateB;
+    });
+  };
+
   const fetchOrders = async (status) => {
     setLoading(true);
     setError(null);
@@ -168,10 +189,10 @@ export default function OrderPage() {
       );
       console.log(data);
 
-      setOrders(data);
+      setOrders(sortOrders(data));
     } catch (error) {
       console.error(error);
-      // setError("Failed to fetch orders. Please try again.");
+      setError("Failed to fetch orders. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -187,16 +208,13 @@ export default function OrderPage() {
         <div className="text-center text-gray-500 py-4">No orders found.</div>
       );
     } else {
-      return orders
-        .slice()
-        .reverse()
-        .map((order) => (
-          <OrderCard
-            key={order.orderId}
-            order={order}
-            onPaymentDone={handlePaymentDone}
-          />
-        ));
+      return orders.map((order) => (
+        <OrderCard
+          key={order.orderId}
+          order={order}
+          onPaymentDone={handlePaymentDone}
+        />
+      ));
     }
   };
 
