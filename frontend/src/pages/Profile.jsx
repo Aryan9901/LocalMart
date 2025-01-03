@@ -284,7 +284,7 @@ const BottomNavigation = ({ userType }) => {
           <>
             <NavItem href="/history" icon={History} tooltip="My Orders" />
             <NavItem href="/" icon={Store} tooltip="Store" />
-            <NavItem href="/cart" icon={ShoppingCart} tooltip="My Cart" />
+            {/* <NavItem href="/cart" icon={ShoppingCart} tooltip="My Cart" /> */}
             <NavItem
               onClick={() => {
                 window.open(`tel:+919899784200`);
