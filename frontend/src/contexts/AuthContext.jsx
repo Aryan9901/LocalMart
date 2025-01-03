@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
           import.meta.env.VITE_API_URL
         }/rest/subziwale/api/v1/user?mobileNo=%2B${phone}`
       );
-      console.log(data);
+      // console.log(data);
       const token = generateToken(data);
       setIsAuthenticated(true);
       setUserRole(data.userType);

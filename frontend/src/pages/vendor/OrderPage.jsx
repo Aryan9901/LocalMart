@@ -241,7 +241,7 @@ export default function OrderPage() {
           },
         }
       );
-      console.log(data);
+      // console.log(data);
 
       setOrders(data);
     } catch (error) {

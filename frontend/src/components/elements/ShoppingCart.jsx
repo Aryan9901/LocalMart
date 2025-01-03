@@ -237,7 +237,7 @@ const ShoppingCart = () => {
       return;
     }
 
-    console.log(orderData);
+    // console.log(orderData);
 
     const user = JSON.parse(localStorage.getItem("user"));
 

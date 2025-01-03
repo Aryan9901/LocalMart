@@ -96,7 +96,7 @@ export default function Profile() {
             },
           }
         );
-        console.log(data);
+        // console.log(data);
         setAddress(data[0]);
       } else {
         const { data } = await axios.get(
@@ -107,7 +107,7 @@ export default function Profile() {
             },
           }
         );
-        console.log(data);
+        // console.log(data);
         setAddress(data[0]);
       }
     } catch (error) {
@@ -119,7 +119,7 @@ export default function Profile() {
     const user = JSON.parse(localStorage.getItem("user"));
     const userType = user.userType;
     const id = user.id;
-    console.log(userType, id);
+    // console.log(userType, id);
 
     fetchAddress(userType, id);
   }, []);
