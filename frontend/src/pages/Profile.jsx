@@ -176,7 +176,7 @@ export default function Profile() {
                 address={address}
                 onCancel={() => setIsEditing(false)}
                 onSuccess={(updatedAddress) => {
-                  setAddress(updatedAddress);
+                  // setAddress(updatedAddress);
                   setIsEditing(false);
                 }}
               />
@@ -308,24 +308,26 @@ function AddressEditForm({ address, onCancel, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const user = JSON.parse(localStorage.getItem("user"));
+    const userId = user.id;
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address/${
-          address.id
-        }`,
+      const { data } = await axios.put(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
         formData,
         {
           headers: {
-            [user.userType === "vendor" ? "X-Vendor-Id" : "X-User-Id"]: user.id,
+            "Content-Type": "application/json",
+            "X-User-Id": userId,
           },
         }
       );
-      toast({
+      toast.success({
         title: "Address Updated",
         description: "Your address has been successfully updated.",
       });
-      onSuccess(response.data);
+      // onSuccess(data);
+      fetchAddress();
     } catch (error) {
       console.error(error);
       toast({

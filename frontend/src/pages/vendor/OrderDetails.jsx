@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import {
   ChevronLeft,
@@ -20,8 +18,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Calendar } from "@/components/ui/calendar";
-import { format, isBefore } from "date-fns";
+import { format, addDays } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -70,12 +67,6 @@ export default function OrderDetails() {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState([]);
   const [editedItems, setEditedItems] = useState([]);
-  const [newItem, setNewItem] = useState({
-    productName: "",
-    quantity: 0,
-    unit: "",
-    netPrice: 0,
-  });
 
   const renderNavItem = (to, icon, label) => (
     <Tooltip>
@@ -100,8 +91,6 @@ export default function OrderDetails() {
           import.meta.env.VITE_API_URL
         }/rest/subziwale/api/v1/order/details?orderId=${id}`
       );
-      // console.log(data);
-
       setOrder(data);
       setEditedItems(data.items.map((item) => ({ ...item, edited: false })));
     } catch (error) {
@@ -176,12 +165,6 @@ export default function OrderDetails() {
   const handleRescheduleOrder = async () => {
     try {
       setLoading(true);
-      // console.log({
-      //   orderId: order.orderId,
-      //   newDate: format(rescheduleDate, "yyyy-MM-dd"),
-      //   newTimeSlot: selectedTimeSlot,
-      // });
-
       await axios.put(
         `${
           import.meta.env.VITE_API_URL
@@ -206,8 +189,6 @@ export default function OrderDetails() {
   };
 
   const handleMarkDelivered = async (status) => {
-    console.log(status);
-
     try {
       setLoading(true);
       await axios.put(
@@ -227,49 +208,60 @@ export default function OrderDetails() {
     }
   };
 
-  const handleBuyAgain = () => {
-    console.log("Buy Again clicked for order items:", order.items);
-  };
-
   const handleQuantityChange = (index, change) => {
     const newItems = editedItems.map((item, i) => {
       if (i === index) {
+        const newQuantity = Math.max(0, item.quantity + change);
+        const newTotal = newQuantity * item.netPrice;
         return {
           ...item,
-          quantity: Math.max(0, item.quantity + change),
+          quantity: newQuantity,
+          total: newTotal,
           edited: true,
         };
       }
-      return { ...item, edited: true };
+      return item;
     });
     setEditedItems(newItems);
+    updateOrderSummary(newItems);
+  };
+
+  const updateOrderSummary = (items) => {
+    const mrpTotal = items.reduce(
+      (sum, item) => sum + item.mrp * item.quantity,
+      0
+    );
+    const netTotal = items.reduce(
+      (sum, item) => sum + item.netPrice * item.quantity,
+      0
+    );
+    const discount = mrpTotal - netTotal;
+    const total = netTotal + order.platformFees + order.deliveryCharges;
+
+    setOrder((prevOrder) => ({
+      ...prevOrder,
+      mrp: mrpTotal,
+      discount: discount,
+      total: total,
+    }));
   };
 
   const handleSubmitChanges = async () => {
     try {
       setLoading(true);
-      // Log all items, regardless of whether they've been edited
-      console.log("All items:", editedItems);
-      console.log("Order details:", order);
-
       const updatedOrderData = {
         ...order,
         items: editedItems,
         note: order?.note || "hii",
       };
 
-      console.log("updated order", updatedOrderData);
-
-      const changedItems = editedItems.filter((item) => item.edited);
-      if (changedItems.length > 0) {
-        const { data } = await axios.put(
-          `${
-            import.meta.env.VITE_API_URL
-          }/rest/subziwale/api/v1/order?orderId=${params?.id}`,
-          updatedOrderData
-        );
-        fetchOrderDetails();
-      }
+      const { data } = await axios.put(
+        `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/order?orderId=${
+          params?.id
+        }`,
+        updatedOrderData
+      );
+      fetchOrderDetails();
     } catch (error) {
       console.error("Error updating order:", error);
     } finally {
@@ -379,23 +371,25 @@ export default function OrderDetails() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">MRP Total</span>
-                    <span>₹ {order.mrp}</span>
+                    <span>₹ {order.mrp?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Discount</span>
-                    <span className="text-green-600">- ₹ {order.discount}</span>
+                    <span className="text-green-600">
+                      - ₹ {order.discount?.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Platform Fees</span>
-                    <span>₹ {order.platformFees}</span>
+                    <span>₹ {order.platformFees?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Delivery Charges</span>
-                    <span>₹ {order.deliveryCharges}</span>
+                    <span>₹ {order.deliveryCharges?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between border-t pt-2 font-medium">
                     <span>TOTAL</span>
-                    <span>₹ {order.total}</span>
+                    <span>₹ {order.total?.toFixed(2)}</span>
                   </div>
                 </div>
               </section>
@@ -642,13 +636,28 @@ export default function OrderDetails() {
             <p className="mb-4 text-sm text-gray-600">
               Please select a new date for your order:
             </p>
-            <Calendar
-              mode="single"
-              selected={rescheduleDate}
-              onSelect={(date) => date && setRescheduleDate(date)}
-              disabled={(date) => isBefore(date, new Date())}
-              className="rounded-md border"
-            />
+            <div className="flex justify-between mb-4">
+              <Button
+                onClick={() => setRescheduleDate(addDays(new Date(), 1))}
+                variant={
+                  rescheduleDate.getDate() === addDays(new Date(), 1).getDate()
+                    ? "default"
+                    : "outline"
+                }
+              >
+                {format(addDays(new Date(), 1), "EEE, MMM d")}
+              </Button>
+              <Button
+                onClick={() => setRescheduleDate(addDays(new Date(), 2))}
+                variant={
+                  rescheduleDate.getDate() === addDays(new Date(), 2).getDate()
+                    ? "default"
+                    : "outline"
+                }
+              >
+                {format(addDays(new Date(), 2), "EEE, MMM d")}
+              </Button>
+            </div>
             <div className="mt-4">
               <label
                 htmlFor="timeSlot"

@@ -156,7 +156,7 @@ const OrderHistory = () => {
           <div className="text-center text-gray-500">No orders found</div>
         ) : (
           <div className="space-y-4">
-            {orders?.reverse()?.map((order, index) => (
+            {orders?.map((order, index) => (
               <div
                 key={uuidv4()}
                 className="bg-white rounded-lg p-4 shadow-sm cursor-pointer"

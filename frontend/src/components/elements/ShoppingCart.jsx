@@ -41,6 +41,20 @@ const formatTime = (time) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
+const getExpressDeliverySlot = () => {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const endTime = new Date(now.getTime() + 60 * 60 * 1000);
+  const endHour = endTime.getHours();
+  const endMinute = endTime.getMinutes();
+  return `${currentHour.toString().padStart(2, "0")}:${currentMinute
+    .toString()
+    .padStart(2, "0")}-${endHour.toString().padStart(2, "0")}:${endMinute
+    .toString()
+    .padStart(2, "0")}`;
+};
+
 const ShoppingCart = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [selectedDay, setSelectedDay] = useState(() => {
@@ -130,12 +144,44 @@ const ShoppingCart = () => {
   const handleSaveAddress = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user.id;
-    tempAddress.type = "home";
+
+    // Check for required fields
+    const requiredFields = [
+      "addressLineOne",
+      "city",
+      "pinCode",
+      "state",
+      "country",
+      "contactNo",
+    ];
+    const missingFields = requiredFields.filter((field) => !tempAddress[field]);
+
+    if (missingFields.length > 0) {
+      toast.error(
+        `Please fill in all required fields: ${missingFields.join(", ")}`
+      );
+      return;
+    }
+
+    const updatedAddress = {
+      ...tempAddress,
+      type: "home",
+      addressLineOne: tempAddress.addressLineOne || "",
+      addressLineTwo: tempAddress.addressLineTwo || "",
+      city: tempAddress.city || "",
+      contactNo: tempAddress.contactNo || "",
+      country: tempAddress.country || "",
+      district: tempAddress.district || "",
+      id: tempAddress.id || "",
+      pinCode: tempAddress.pinCode || "",
+      state: tempAddress.state || "",
+    };
+
     try {
       setLoading(true);
-      const { data } = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/rest/subziwale/api/v1/address`,
-        tempAddress,
+        updatedAddress,
         {
           headers: {
             "Content-Type": "application/json",
@@ -145,11 +191,12 @@ const ShoppingCart = () => {
       );
 
       fetchAddress();
+      toast.success("Address saved successfully");
     } catch (error) {
-      toast.error("Some Error occured");
+      toast.error("Error saving address");
       console.error(error);
     } finally {
-      setLoading(true);
+      setLoading(false);
     }
   };
 
@@ -162,14 +209,14 @@ const ShoppingCart = () => {
       deliveryCharges: totals.deliveryCharges,
       total: totals.total,
       contactNo: address.contactNo,
-      deliveryAddress: `${address.addressLineOne}, ${address.addressLineTwo}, ${address.city}, ${address.district}, ${address.state} ${address.country} ${address.pinCode}`,
+      deliveryAddress: `${address?.addressLineOne}, ${address?.addressLineTwo}, ${address?.city}, ${address?.district}, ${address?.state} ${address?.country} ${address.pinCode}`,
       status: "Pending",
       orderDate: new Date(),
       deliveryDate:
         selectedDay === "today"
           ? new Date().toISOString().split("T")[0]
           : new Date(Date.now() + 86400000).toISOString().split("T")[0],
-      timeSlot: expressDelivery ? "Within 1 hour" : selectedTimeSlot,
+      timeSlot: expressDelivery ? getExpressDeliverySlot() : selectedTimeSlot,
       expressDelivery,
       selfPickup,
       note: notes,
@@ -178,6 +225,7 @@ const ShoppingCart = () => {
         inventoryId: item.variant.inventoryId,
         productName: item.name,
         quantity: item.quantity,
+        productImageUrl: item.image,
         unit: item.variant.unit,
         mrp: item.mrp,
         netPrice: item.price,
@@ -185,8 +233,11 @@ const ShoppingCart = () => {
     };
     if (orderData?.items?.length < 1) {
       toast.error("Cart is Empty! Try adding items to the cart");
+      // setIsSubmitting(false);
       return;
     }
+
+    console.log(orderData);
 
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -414,7 +465,8 @@ const ShoppingCart = () => {
                   <div className="grid grid-cols-1  gap-1">
                     <div className="relative ">
                       <label className="text-sm text-muted-foreground">
-                        House No / Flat / Floor / Building :
+                        House No / Flat / Floor / Building :{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <Input
                         className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
@@ -422,6 +474,7 @@ const ShoppingCart = () => {
                         onChange={(e) =>
                           handleAddressChange("addressLineOne", e.target.value)
                         }
+                        required
                       />
                     </div>
                     <div className="relative ">
@@ -439,7 +492,7 @@ const ShoppingCart = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="relative">
                         <label className="text-sm text-muted-foreground">
-                          Pin Code :
+                          Pin Code : <span className="text-red-500">*</span>
                         </label>
                         <Input
                           className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
@@ -447,11 +500,12 @@ const ShoppingCart = () => {
                           onChange={(e) =>
                             handleAddressChange("pinCode", e.target.value)
                           }
+                          required
                         />
                       </div>
                       <div className="relative">
                         <label className="text-sm text-muted-foreground">
-                          City :
+                          City : <span className="text-red-500">*</span>
                         </label>
                         <Input
                           className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
@@ -459,6 +513,7 @@ const ShoppingCart = () => {
                           onChange={(e) =>
                             handleAddressChange("city", e.target.value)
                           }
+                          required
                         />
                       </div>
                     </div>
@@ -477,7 +532,7 @@ const ShoppingCart = () => {
                       </div>
                       <div className="relative">
                         <label className="text-sm text-muted-foreground">
-                          State/UT :
+                          State/UT : <span className="text-red-500">*</span>
                         </label>
                         <Input
                           className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
@@ -485,12 +540,13 @@ const ShoppingCart = () => {
                           onChange={(e) =>
                             handleAddressChange("state", e.target.value)
                           }
+                          required
                         />
                       </div>
                     </div>
                     <div className="relative">
                       <label className="text-sm text-muted-foreground">
-                        Country:
+                        Country: <span className="text-red-500">*</span>
                       </label>
                       <Input
                         className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
@@ -498,11 +554,12 @@ const ShoppingCart = () => {
                         onChange={(e) =>
                           handleAddressChange("country", e.target.value)
                         }
+                        required
                       />
                     </div>
                     <div className="relative">
                       <label className="text-sm text-muted-foreground">
-                        Contact No :
+                        Contact No : <span className="text-red-500">*</span>
                       </label>
                       <Input
                         className="mt-1 focus-visible:ring-1 focus-visible:ring-offset-0"
@@ -510,6 +567,7 @@ const ShoppingCart = () => {
                         onChange={(e) =>
                           handleAddressChange("contactNo", e.target.value)
                         }
+                        required
                       />
                     </div>
                   </div>
@@ -574,7 +632,7 @@ const ShoppingCart = () => {
                 htmlFor="expressDelivery"
                 className="text-sm cursor-pointer"
               >
-                Express (within 1 hour)
+                Express (next hour)
               </label>
             </div>
             <div className="flex items-center">
