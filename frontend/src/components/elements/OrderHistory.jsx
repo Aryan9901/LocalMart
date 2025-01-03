@@ -142,7 +142,10 @@ const OrderHistory = () => {
         </div>
       )}
       <div className="bg-white px-4 py-4 flex items-center border-b">
-        <h1 className="text-lg font-medium flex-1 text-left ml-4 mr-6">
+        <Link to="/">
+          <img src="/images/logo.png" alt="Logo" className="w-20" />
+        </Link>
+        <h1 className="text-base font-medium flex-1 text-left ml-4 mr-6">
           Order History
         </h1>
         <UserMenu />

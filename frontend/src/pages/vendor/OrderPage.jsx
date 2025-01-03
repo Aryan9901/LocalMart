@@ -207,6 +207,9 @@ export default function OrderPage() {
   return (
     <div className="min-h-screen sm:border-l sm:border-r bg-gray-50 pb-20">
       <div className="flex items-center justify-between px-4 py-4 bg-white border-b sticky top-0 z-10">
+        <Link to="/">
+          <img src="/images/logo.png" alt="Logo" className="w-20" />
+        </Link>
         <h1 className="text-lg font-semibold text-gray-900 ml-2">
           Orders Page
         </h1>

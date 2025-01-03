@@ -33,26 +33,31 @@ export default function LoginPage() {
       <Card className="w-full border-none shadow-none min-h-screen rounded-none p-0 overflow-hidden">
         <div className="grid min-h-screen items-stretch">
           {/* Left side / Mobile top */}
-          <div className="relative px-6 py-3 flex items-center justify-center bg-[#F8FFF8] transition-all duration-300 ease-in-out">
+          <div
+            className={`relative px-6 py-3 flex items-center justify-center  transition-all duration-300 ease-in-out`}
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url(images/background.png)",
+            }}
+          >
             <div className="w-full max-w-md mx-auto space-y-2">
-              <h2 className="text-center text-xl font-bold">Login</h2>
-              <div className="relative aspect-square w-full max-w-[150px] mx-auto">
+              <div className="relative  w-full max-w-[190px] mx-auto">
                 <img
-                  src="/images/loginimg.png"
+                  src="/images/logo.png"
                   alt="Fruits and Vegetables Illustration"
-                  className="w-full h-full object-contain transition-transform duration-300 ease-in-out"
+                  className="w-full  object-contain transition-transform duration-300 ease-in-out"
                 />
               </div>
-              <p className="text-center mx-auto w-3/4 leading-5 text-base font-medium text-[#3e803a]">
-                High Quality & Fresh Fruits, Vegetables & Dairy Products
+              <p className="text-center mx-auto  w-3/4 leading-5 text-base  text-[#3d6b2f] font-bold">
+                High Quality Fresh Fruits, Vegetables & Dairy Products
               </p>
             </div>
           </div>
 
           {/* Right side - Login Form */}
-          <div className=" my-0 pb-2 px-5 flex bg-white md:bg-[#d8eced] flex-col justify-center transition-all duration-300 ease-in-out">
+          <div className=" my-0 pt-5  pb-2 px-5 flex bg-white flex-col justify-start transition-all duration-300 ease-in-out">
             <div className="space-y-3 max-w-md mx-auto w-full">
-              <div className="text-center md:text-left space-y-1">
+              <div className="text-center space-y-1">
                 <h1 className="text-2xl font-bold text-[#3e803a]">
                   Welcome to Subziwale
                 </h1>
@@ -74,7 +79,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-[#4461F2] hover:bg-[#4461F2]/90 text-white font-medium text-lg transition-all duration-300 ease-in-out focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="w-full h-12 bg-[#3d6b2f] hover:bg-[#3d6b2f]/90 text-white font-medium text-lg transition-all duration-300 ease-in-out focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
                   Log In
                 </Button>

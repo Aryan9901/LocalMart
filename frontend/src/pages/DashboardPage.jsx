@@ -96,6 +96,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const controller = new AbortController();
+    window.scrollTo(0, 0);
     fetchProducts(controller);
 
     return () => controller.abort();
@@ -112,7 +113,10 @@ export default function Dashboard() {
             className="w-full flex items-center justify-start text-gray-500 mb-2"
           >
             <Search className="mr-2 h-4 w-4" />
-            Search (e.g. Aloo, Pyaaz, Apple, Milk, Paneer)
+            Search
+            <span className="italic">
+              (e.g. Aloo, Pyaaz, Apple, Milk, Paneer)
+            </span>
           </Button>
 
           <Tabs
@@ -179,7 +183,7 @@ export default function Dashboard() {
 
         {localStorage.getItem("userRole") === "user" && (
           <TooltipProvider>
-            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white  shadow-lg border-t z-20">
               {renderNavItem(
                 "/history",
                 <History className="h-6 w-6 text-gray-500" />,
@@ -224,7 +228,7 @@ export default function Dashboard() {
         )}
         {localStorage.getItem("userRole") === "vendor" && (
           <TooltipProvider>
-            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+            <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white  shadow-lg border-t z-20">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link to="/vendor" className="p-2">

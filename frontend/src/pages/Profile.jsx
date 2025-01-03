@@ -21,6 +21,8 @@ import {
   User,
   History,
   ShoppingCart,
+  ChevronDown,
+  ChevronLeft,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -145,9 +147,16 @@ export default function Profile() {
   return (
     <div className="flex flex-col max-w-sm mx-auto sm:border-l sm:border-r min-h-screen">
       <header className="sticky top-0 z-10 bg-white border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Profile</h1>
-          <User className="h-6 w-6" />
+        <div className="container mx-auto px-4 py-4 flex items-center">
+          <ChevronLeft
+            onClick={() => navigate(-1)}
+            className="h-5 cursor-pointer w-5"
+          />
+          <h1 className="ml-2 text-xl font-semibold">Profile</h1>
+          <User
+            onClick={() => navigate("/")}
+            className="h-6 w-6 cursor-pointer ml-auto"
+          />
         </div>
       </header>
 

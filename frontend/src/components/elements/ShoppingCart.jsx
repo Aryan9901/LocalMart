@@ -310,7 +310,11 @@ const ShoppingCart = () => {
               Add Item
             </Button>
           </div>
-
+          {cart.length === 0 && (
+            <p className="text-center text-sm text-red w-2/3 text-red-500 mx-auto text-balance ">
+              Your Cart is Empty! Try Adding Some Items
+            </p>
+          )}
           {cart.map((item) => (
             <div
               key={`${item.id}-${item.variant.inventoryId}`}
@@ -525,7 +529,11 @@ const ShoppingCart = () => {
             <>
               <div className="flex items-start mb-2">
                 <MapPin className="w-5 h-5 mr-2 mt-1" />
-                <p>{`${address?.addressLineOne}, ${address?.addressLineTwo}, ${address?.city}, ${address?.district}, ${address?.country} ${address?.pinCode}`}</p>
+                <p>{`${address?.addressLineOne || ""} ${
+                  address?.addressLineTwo || ""
+                } ${address?.city || ""} ${address?.district || ""} ${
+                  address?.country || ""
+                } ${address?.pinCode || ""}`}</p>
               </div>
               <div className="flex items-center">
                 <Phone className="w-5 h-5 mr-2" />
@@ -548,7 +556,11 @@ const ShoppingCart = () => {
                   setExpressDelivery(e.target.checked);
                 }}
                 className="mr-2"
-                disabled={selfPickup}
+                disabled={
+                  selfPickup ||
+                  selectedDay === "tomorrow" ||
+                  new Date().getHours() >= 20
+                }
               />
               <label
                 htmlFor="expressDelivery"
@@ -566,6 +578,7 @@ const ShoppingCart = () => {
                   setSelfPickup(e.target.checked);
                 }}
                 className="mr-2"
+                disabled={expressDelivery}
               />
               <label htmlFor="selfPickup" className="text-sm cursor-pointer">
                 Self Pickup

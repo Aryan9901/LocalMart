@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const timeSlots = [
   "08:00-10:00",
@@ -99,7 +100,7 @@ export default function OrderDetails() {
           import.meta.env.VITE_API_URL
         }/rest/subziwale/api/v1/order/details?orderId=${id}`
       );
-      console.log(data);
+      // console.log(data);
 
       setOrder(data);
       setEditedItems(data.items.map((item) => ({ ...item, edited: false })));
@@ -162,7 +163,8 @@ export default function OrderDetails() {
           cancellationReason: cancelReason,
         }
       );
-      fetchOrderDetails();
+      toast.success("Order Cancelled Successfully");
+      navigate("/vendor");
     } catch (error) {
       console.error("Error cancelling order:", error);
     } finally {
@@ -174,11 +176,11 @@ export default function OrderDetails() {
   const handleRescheduleOrder = async () => {
     try {
       setLoading(true);
-      console.log({
-        orderId: order.orderId,
-        newDate: format(rescheduleDate, "yyyy-MM-dd"),
-        newTimeSlot: selectedTimeSlot,
-      });
+      // console.log({
+      //   orderId: order.orderId,
+      //   newDate: format(rescheduleDate, "yyyy-MM-dd"),
+      //   newTimeSlot: selectedTimeSlot,
+      // });
 
       await axios.put(
         `${
@@ -193,7 +195,8 @@ export default function OrderDetails() {
         }
       );
 
-      fetchOrderDetails();
+      toast.success("Order Rescheduled Successfully");
+      navigate("/vendor");
     } catch (error) {
       console.error("Error rescheduling order:", error);
     } finally {
@@ -215,8 +218,8 @@ export default function OrderDetails() {
         }&status=${status}`,
         {}
       );
-
-      fetchOrderDetails();
+      toast.success("Order Delivered Successfully");
+      navigate("/vendor");
     } catch (error) {
       console.error("Error marking order as delivered:", error);
     } finally {
@@ -240,17 +243,6 @@ export default function OrderDetails() {
       return { ...item, edited: true };
     });
     setEditedItems(newItems);
-  };
-
-  const handleAddNewItem = () => {
-    // setEditedItems(
-    //   editedItems
-    //     .map((item) => ({ ...item, edited: true }))
-    //     .concat({ ...newItem, edited: true })
-    // );
-    // setNewItem({ productName: "", quantity: 0, unit: "", netPrice: 0 });
-
-    navigate("/vendor/orders/add/new");
   };
 
   const handleSubmitChanges = async () => {
@@ -312,17 +304,7 @@ export default function OrderDetails() {
           {order && (
             <>
               <section className="rounded-lg bg-white p-4">
-                <h2 className="mb-4 flex items-center justify-between font-medium">
-                  Order Items{" "}
-                  {localStorage.getItem("userRole") === "vendor" && (
-                    <Button
-                      onClick={handleAddNewItem}
-                      className="text-black bg-white border border-black py-0 px-3 text-sm leading-4"
-                    >
-                      Add Item
-                    </Button>
-                  )}
-                </h2>
+                <h2 className="mb-4 font-medium">Order Items</h2>
                 <div className="space-y-4">
                   {editedItems.map((item, index) => (
                     <div
@@ -465,6 +447,9 @@ export default function OrderDetails() {
                       : "Express Delivery"}
                   </span>
                 </p>
+                <p className="text-sm text-gray-600">
+                  Note: <span className="font-medium">{order?.note}</span>
+                </p>
               </section>
             </>
           )}
@@ -506,15 +491,17 @@ export default function OrderDetails() {
                 </div>
               ) : (
                 <div className={`flex items-center gap-3`}>
-                  <h4
-                    className={` text-balance  text-red-400 ${
-                      order?.status !== "Completed"
-                        ? "text-left text-sm"
-                        : "text-center text-base hidden"
-                    }`}
-                  >
-                    Express Order Can't be Rescheduled or Cancelled
-                  </h4>
+                  {order?.status !== "paid" && (
+                    <h4
+                      className={` text-balance  text-red-400 ${
+                        order?.status !== "Completed"
+                          ? "text-left text-sm"
+                          : "text-center text-base hidden"
+                      }`}
+                    >
+                      Express Order Can't be Rescheduled or Cancelled
+                    </h4>
+                  )}
 
                   {order?.status != "Paid" && (
                     <>
@@ -546,12 +533,12 @@ export default function OrderDetails() {
               <div className="">
                 {order?.expressDelivery ? (
                   <div>
-                    <Button
+                    {/* <Button
                       className="bg-green-600 w-1/3 hover:bg-green-700"
                       onClick={handleBuyAgain}
                     >
                       Buy Again
-                    </Button>
+                    </Button> */}
                   </div>
                 ) : (
                   <div className="w-full gap-2 flex items-center justify-center">
@@ -571,12 +558,12 @@ export default function OrderDetails() {
                         Reschedule
                       </Button>
                     )}
-                    <Button
+                    {/* <Button
                       className="bg-green-600 w-1/3 hover:bg-green-700"
                       onClick={handleBuyAgain}
                     >
                       Buy Again
-                    </Button>
+                    </Button> */}
                   </div>
                 )}
               </div>
@@ -703,7 +690,7 @@ export default function OrderDetails() {
       )}
       {localStorage.getItem("userRole") === "vendor" && (
         <TooltipProvider>
-          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white  shadow-lg border-t z-20">
             {renderNavItem(
               "/vendor",
               <ShoppingBag className="h-6 w-6 text-gray-500" />,
