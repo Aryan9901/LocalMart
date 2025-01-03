@@ -187,7 +187,7 @@ const OrderHistory = () => {
 
       {localStorage.getItem("userRole") === "user" && (
         <TooltipProvider>
-          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+          <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white  shadow-lg border-t z-20">
             {renderNavItem(
               "/history",
               <History className="h-6 w-6 text-black" />,
@@ -199,7 +199,7 @@ const OrderHistory = () => {
               "My Store"
             )}
             <Tooltip>
-              <TooltipTrigger asChild>
+              {/* <TooltipTrigger asChild>
                 <Link to="/cart" className="relative">
                   <ShoppingCart className="h-6 w-6 text-gray-600" />
                   {cart.length > 0 && (
@@ -208,7 +208,7 @@ const OrderHistory = () => {
                     </span>
                   )}
                 </Link>
-              </TooltipTrigger>
+              </TooltipTrigger> */}
               <TooltipContent>
                 <p>cart</p>
               </TooltipContent>
@@ -217,12 +217,7 @@ const OrderHistory = () => {
               <TooltipTrigger asChild>
                 <Phone
                   onClick={() => {
-                    const user = JSON.parse(
-                      localStorage.getItem("user") || "{}"
-                    );
-                    if (user.contactNo) {
-                      window.open(`tel:${user.contactNo}`);
-                    }
+                    window.open(`tel:+918851771039`);
                   }}
                   className="h-6 w-6 text-gray-600 cursor-pointer"
                 />

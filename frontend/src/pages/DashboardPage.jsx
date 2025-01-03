@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,20 +30,30 @@ export default function Dashboard() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Vegetables");
   const navigate = useNavigate();
-  const { cart, addToCart } = useCart();
+  const { cart, addToCart, removeFromCart } = useCart();
   const [loading, setLoading] = useState(false);
 
-  const handleAddToCart = (product, quantity, variant) => {
-    addToCart({
-      id: product.productId,
-      name: product.productName,
-      image: product.productImageUrl,
-      mrp: variant.mrp || product.mrp,
-      price: variant.netPrice || product.netPrice,
-      quantity: quantity,
-      variant: variant,
-    });
-  };
+  const handleAddToCart = useCallback(
+    (product, quantity, variant) => {
+      addToCart({
+        id: product.productId,
+        name: product.productName,
+        image: product.productImageUrl,
+        mrp: variant.mrp || product.mrp,
+        price: variant.netPrice || product.netPrice,
+        quantity: quantity,
+        variant: variant,
+      });
+    },
+    [addToCart]
+  );
+
+  const handleRemoveFromCart = useCallback(
+    (productId, variantId) => {
+      removeFromCart(productId, variantId);
+    },
+    [removeFromCart]
+  );
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
@@ -68,31 +78,34 @@ export default function Dashboard() {
     </Tooltip>
   );
 
-  const fetchProducts = async (controller) => {
-    try {
-      setLoading(true);
-      const vendorId = VENDOR_ID;
-      const { data } = await axios.get(
-        `${
-          import.meta.env.VITE_API_URL
-        }/rest/subziwale/api/v1/products?category=${activeTab}`,
-        {
-          headers: {
-            "X-Vendor-Id": vendorId,
-          },
-          signal: controller.signal,
-        }
-      );
+  const fetchProducts = useCallback(
+    async (controller) => {
+      try {
+        setLoading(true);
+        const vendorId = VENDOR_ID;
+        const { data } = await axios.get(
+          `${
+            import.meta.env.VITE_API_URL
+          }/rest/subziwale/api/v1/products?category=${activeTab}`,
+          {
+            headers: {
+              "X-Vendor-Id": vendorId,
+            },
+            signal: controller.signal,
+          }
+        );
 
-      setProducts(data);
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        console.error(error);
+        setProducts(data);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error(error);
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [activeTab]
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -100,7 +113,7 @@ export default function Dashboard() {
     fetchProducts(controller);
 
     return () => controller.abort();
-  }, [activeTab]);
+  }, [activeTab, fetchProducts]);
 
   return (
     <div className="min-h-screen sm:border-l sm:border-r bg-gray-50">
@@ -156,6 +169,7 @@ export default function Dashboard() {
                   product={product}
                   onSelect={handleProductSelect}
                   onAddToCart={handleAddToCart}
+                  onRemoveFromCart={handleRemoveFromCart}
                 />
               ))
             )}
@@ -195,16 +209,6 @@ export default function Dashboard() {
                 "My Store"
               )}
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link to="/cart" className="relative">
-                    <ShoppingCart className="h-6 w-6 text-gray-600" />
-                    {cart.length > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-[#39c55e] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {cart.length}
-                      </span>
-                    )}
-                  </Link>
-                </TooltipTrigger>
                 <TooltipContent>
                   <p>Cart</p>
                 </TooltipContent>
@@ -213,8 +217,7 @@ export default function Dashboard() {
                 <TooltipTrigger asChild>
                   <Phone
                     onClick={() => {
-                      const user = JSON.parse(localStorage.getItem("user"));
-                      window.open(`tel:${user.contactNo}`);
+                      window.open(`tel:+918851771039`);
                     }}
                     className="h-6 w-6 text-gray-600 cursor-pointer"
                   />

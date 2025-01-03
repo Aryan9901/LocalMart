@@ -331,6 +331,12 @@ const ShoppingCart = () => {
     fetchAddress();
   }, []);
 
+  useEffect(() => {
+    if (cart.length === 0) {
+      navigate("/");
+    }
+  }, [cart]);
+
   return (
     <div className="bg-gray-100 min-h-screen ">
       {loading && (
@@ -371,21 +377,56 @@ const ShoppingCart = () => {
               key={`${item.id}-${item.variant.inventoryId}`}
               className="flex items-center justify-between mb-2"
             >
-              <div className="flex items-center">
+              <div className="flex gap-2 w-full items-center">
                 <img
                   src={item.image || `/images/${item.name.toLowerCase()}.png`}
                   alt={item.name}
-                  className="w-10 h-10 mr-2 rounded object-cover"
+                  className="w-12 h-10 mr-2 rounded object-cover"
                 />
-                <div>
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {item.variant.variant} {item.variant.unit}
-                  </p>
-                  <span className="px-2">{item.quantity}</span>
+                <div className="w-full">
+                  <div className="flex items-center justify-between gap-2 w-full ">
+                    <p className="font-semibold">{item.name}</p>
+                    <div className="flex items-center bg-green-600 text-white rounded-md px-1">
+                      <button
+                        onClick={() =>
+                          handleUpdateQuantity(
+                            item.id,
+                            item.variant.inventoryId,
+                            -1
+                          )
+                        }
+                        className="p-1  rounded-full"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="px-2">{item.quantity}</span>
+                      <button
+                        onClick={() => {
+                          if (item.quantity !== 9) {
+                            handleUpdateQuantity(
+                              item.id,
+                              item.variant.inventoryId,
+                              1
+                            );
+                          }
+                        }}
+                        className="p-1  rounded-full"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 justify-between w-full ">
+                    <p className="text-sm text-gray-500">
+                      {item.variant.variant} {item.variant.unit}
+                    </p>
+                    <span className="ml-2 font-semibold">
+                      ₹ {item.price * item.quantity}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <button
                   onClick={() =>
                     handleUpdateQuantity(item.id, item.variant.inventoryId, -1)
@@ -403,10 +444,8 @@ const ShoppingCart = () => {
                 >
                   <Plus size={16} />
                 </button>
-                <span className="ml-2 font-semibold">
-                  ₹ {item.price * item.quantity}
-                </span>
-              </div>
+
+              </div> */}
             </div>
           ))}
         </div>
@@ -736,7 +775,7 @@ const ShoppingCart = () => {
         </div>
       </div>
       <TooltipProvider>
-        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white rounded-t-xl shadow-lg border-t z-20">
+        <nav className="w-full fixed bottom-0 max-w-sm mx-auto py-2 px-4 flex items-center justify-around bg-white  shadow-lg border-t z-20">
           {renderNavItem(
             "/history",
             <History className="h-6 w-6 text-gray-500" />,
@@ -748,9 +787,9 @@ const ShoppingCart = () => {
             "My Store"
           )}
           <Tooltip>
-            <TooltipTrigger asChild>
+            {/* <TooltipTrigger asChild>
               <ShoppingCartIcon className="h-6 w-6 text-black cursor-pointer" />
-            </TooltipTrigger>
+            </TooltipTrigger> */}
             <TooltipContent>
               <p>Cart</p>
             </TooltipContent>
@@ -759,8 +798,7 @@ const ShoppingCart = () => {
             <TooltipTrigger asChild>
               <Phone
                 onClick={() => {
-                  const user = JSON.parse(localStorage.getItem("user"));
-                  window.open(`tel:${user.contactNo}`);
+                  window.open(`tel:+918851771039`);
                 }}
                 className="h-6 w-6 text-gray-600 cursor-pointer"
               />
